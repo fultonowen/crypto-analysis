@@ -1,0 +1,19 @@
+services:
+  datastore:
+    image:  timescale/timescaledb:latest-pg16
+
+  server:
+    container_name: server
+    environment:
+      - ENVIRONMENT=test
+      - HOST=
+
+  feed:
+    container_name: feed
+    environment:
+      - ENVIRONMENT=test
+      - BINANCE_WS_HOST=TODO
+      -
+
+  observability:
+    image: grafana/otel-lgtm

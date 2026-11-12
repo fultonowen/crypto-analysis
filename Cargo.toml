@@ -1,0 +1,35 @@
+[workspace]
+name = "crypto-analysis"
+resolver = "2"
+members = ["crates/*"]
+
+[workspace.package]
+authors = ["Owen Fulton <fultonowen@gmail.com>"]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.99.0"
+
+[workspace.dependencies]
+anyhow = "1.0.104"
+async-graphql-axum = "7.2.1"
+async-graphql = "7.2.1"
+axum = "0.8.9"
+futures-util = "0.3.34"
+futures-channel = "0.3.30"
+async-stream = "0.3.5"
+polars = "0.55.2"
+tokio = "1.54.1"
+tokio-tungstenite = "0.30.0"
+serde = "1.0.229"
+serde_json = "1.0.154"
+sqlx = "0.9.0"
+uuid = "1.29.2"
+
+# graphical interfaces
+gpui = "0.2.2" #TODO: do we want to use this
+gpui-component = "0.5.1"
+
+# observability and tracing
+tracing = "0.1.44"
+tracing-subscriber = "0.3.23"
+logfire = "0.13.1"

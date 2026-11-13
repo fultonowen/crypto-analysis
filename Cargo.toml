@@ -2,6 +2,7 @@
 name = "crypto-analysis"
 resolver = "2"
 members = ["crates/*"]
+exclude = ["crates/dashboard"] #todo: for now
 
 [workspace.package]
 authors = ["Owen Fulton <fultonowen@gmail.com>"]
@@ -11,14 +12,18 @@ rust-version = "1.99.0"
 
 [workspace.dependencies]
 anyhow = "1.0.104"
+async-trait = "0.1.92"
+axum = "0.8.9"
 async-graphql-axum = "7.2.1"
 async-graphql = "7.2.1"
-axum = "0.8.9"
+graphql_client = "0.16.0"
 futures-util = "0.3.34"
 futures-channel = "0.3.30"
 async-stream = "0.3.5"
-polars = "0.55.2"
+reqwest = "0.13.5"
+thiserror = "2.0.21"
 tokio = "1.54.1"
+tokio-stream = "0.1.19"
 tokio-tungstenite = "0.30.0"
 serde = "1.0.229"
 serde_json = "1.0.154"

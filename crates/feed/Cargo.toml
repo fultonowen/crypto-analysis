@@ -5,9 +5,22 @@ version.workspace = true
 authors.workspace = true
 rust-version.workspace = true
 
+[[bin]]
+name = "feed"
+path = "src/main.rs"
+
 [dependencies]
+# internal crates
+framework = { path = "../framework" }
+
+# third party crates
 anyhow = { workspace = true }
+async-trait = { workspace = true }
 axum = { workspace = true }
-tokio = { workspace = true }
-tokio-tungstenite = { workspace = true }
+futures-util = { workspace = true }
+reqwest = { workspace = true }
+tokio = { workspace = true, features = ["rt-multi-thread"] }
+tokio-tungstenite = { workspace = true, features = ["native-tls-vendored"]}
+tracing = { workspace = true, features = ["attributes"]}
 serde = { workspace = true }
+serde_json = { workspace = true }

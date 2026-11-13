@@ -1,0 +1,63 @@
+services:
+  datastore:
+    image:  timescale/timescaledb:latest-pg16
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      - PGDATA=/pgdata
+      - POSTGRES_PASSWORD=password
+    healthcheck:
+      test: [ "CMD", "pg_isready" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  server:
+    container_name: server
+    build:
+      context: .
+      target: final
+      dockerfile: Docker/Dockerfile.Server
+    ports:
+      - "8080:8080"
+    environment:
+      - ENVIRONMENT=test
+      - HOST=noneatthemoment
+    depends_on:
+      datastore:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+
+  migrate:
+    build:
+      context: .
+      dockerfile: Docker/
+    environment:
+      - DATABASE_URL=postgres://postgres:password@datastore:5432/
+    depends_on:
+      datastore:
+        condition: service_healthy
+
+  feed:
+    container_name: feed
+    build:
+      context: .
+      target: final
+      dockerfile: Docker/Dockerfile.Feed
+    environment:
+      - ENVIRONMENT=test
+      - BINANCE_WS_HOST=TODO
+      - DB_CONNECTION=postgres
+      - OTEL_SERVICE_NAME=feed-handler
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://observability:4318
+      - OTEL_EXPORTER_OTLP_PROTOCOL=grpc
+    depends_on:
+      observability:
+        condition: service_started
+
+  observability:
+    image: grafana/otel-lgtm
+    ports:
+      - "3000:3000"

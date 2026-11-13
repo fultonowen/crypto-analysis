@@ -1,14 +1,16 @@
-pub fn add(left: u64, right: u64) -> u64 {
-    left + right
+#[derive(Debug)]
+pub enum Side { Buy, Sell }
+
+#[derive(Debug)]
+pub struct Trade {
+    pub exchange: &'static str,
+    pub symbol: String,
+    pub trade_id: u64,
+    pub price: f64, // consider fixed-point i64 for production
+    pub qty: f64,
+    pub ts_ms: u64,
+    pub aggressor: Side,
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
-}
+#[derive(Debug)]
+pub enum MarketEvent { Trade(Trade) }

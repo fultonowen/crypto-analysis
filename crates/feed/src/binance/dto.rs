@@ -1,5 +1,6 @@
 use serde::Deserialize;
 
+// todo: remove
 #[derive(Deserialize)]
 pub struct AggTradeData {
     pub e: String, // event type

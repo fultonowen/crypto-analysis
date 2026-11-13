@@ -15,6 +15,7 @@ path = "src/lib.rs"
 [dependencies]
 # internal crates
 framework = { path = "../framework" }
+model = { path = "../model" }
 
 # third party crates
 anyhow = { workspace = true }
@@ -22,8 +23,10 @@ async-trait = { workspace = true }
 axum = { workspace = true }
 futures-util = { workspace = true }
 reqwest = { workspace = true }
+thiserror = { workspace = true }
 tokio = { workspace = true, features = ["rt-multi-thread"] }
 tokio-tungstenite = { workspace = true, features = ["native-tls-vendored"]}
 tracing = { workspace = true, features = ["attributes"]}
 serde = { workspace = true, features = ["derive"]}
 serde_json = { workspace = true }
+bytes = "1.12.1"

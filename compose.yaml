@@ -24,6 +24,9 @@ services:
     environment:
       - ENVIRONMENT=test
       - HOST=noneatthemoment
+      - OTEL_SERVICE_NAME=server
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://observability:4317
+      - OTEL_EXPORTER_OTLP_PROTOCOL=grpc
     depends_on:
       datastore:
         condition: service_healthy

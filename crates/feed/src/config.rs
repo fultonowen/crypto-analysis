@@ -1,6 +1,7 @@
 use serde::Deserialize;
 use framework::config::EnvConfig;
 use framework::database::DatabaseConfig;
+use crate::adapter::config::FeedConfig;
 
 #[derive(Debug, Deserialize)]
 pub struct AppConfig {
@@ -9,11 +10,4 @@ pub struct AppConfig {
 }
 
 impl EnvConfig for AppConfig {}
-
-#[derive(Debug, Clone, Deserialize)]
-pub struct FeedConfig {
-    pub ws_url: String,
-    pub spot_ids: String,
-    // todo:
-}
 

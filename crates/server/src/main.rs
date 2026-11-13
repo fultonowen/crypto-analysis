@@ -1,20 +1,14 @@
+use framework::config::EnvConfig;
 use framework::database::Database;
 use framework::observability;
+use server::config::ServerConfig;
+use server::graphql::HttpServer;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    let config = Config::from_env()?;
-
-    // A minimal tracing middleware for request logging.
-    let otel_guard = observability::configure()?;
-    let postgres : Database = todo!();
-    let sqlite = Sqlite::new(&config.database_url).await?;
-    let prometheus = Prometheus::new();
-    let blog_service = Service::new(sqlite, prometheus, email_client);
-
-    let server_config = HttpServerConfig {
-        port: &config.server_port,
-    };
-    let http_server = HttpServer::new(blog_service, server_config).await?;
+    let _otel_guard = observability::configure()?;
+    let config = ServerConfig::from_env()?;
+    let pg_conn = Database::connect(&config.database).await?;
+    let http_server = HttpServer::new(pg_conn, &config.http).await?;
     http_server.run().await
 }

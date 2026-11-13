@@ -9,6 +9,9 @@ rust-version.workspace = true
 name = "feed"
 path = "src/main.rs"
 
+[lib]
+path = "src/lib.rs"
+
 [dependencies]
 # internal crates
 framework = { path = "../framework" }
@@ -22,5 +25,5 @@ reqwest = { workspace = true }
 tokio = { workspace = true, features = ["rt-multi-thread"] }
 tokio-tungstenite = { workspace = true, features = ["native-tls-vendored"]}
 tracing = { workspace = true, features = ["attributes"]}
-serde = { workspace = true }
+serde = { workspace = true, features = ["derive"]}
 serde_json = { workspace = true }

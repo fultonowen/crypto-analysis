@@ -5,18 +5,20 @@ edition.workspace = true
 authors.workspace = true
 rust-version.workspace = true
 
+[[bin]]
+name = "server"
+path = "src/main.rs"
+
 [dependencies]
 # internal crates
 framework = { path = "../framework" }
 
 # third party crates
-async-graphql-axum = { workspace = true }
 anyhow = { workspace = true }
 async-graphql = { workspace = true }
-axum = { workspace = true }
-futures-util = { workspace = true }
-futures-channel = { workspace = true }
-async-stream = { workspace = true }
+async-graphql-axum = { workspace = true }
+axum = { workspace = true, features = ["ws"]}
 tokio = { workspace = true, features = ["rt-multi-thread"] }
-tower-http = "0.6.11"
+tokio-stream = { workspace = true }
 tracing = { workspace = true, features = ["attributes"] }
+serde = { version = "1.0.229", features = ["derive"] }

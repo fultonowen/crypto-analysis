@@ -1,31 +1,28 @@
 pub mod query;
-pub mod handler;
+pub mod handlers;
 pub mod subscription;
 pub mod schema;
 
-/**
-Module `http` exposes an HTTP server that handles HTTP requests to the application. Its
-implementation is opaque to module consumers.
-*/
-
-use std::sync::Arc;
-
 use anyhow::Context;
-use axum::Router;
-use axum::routing::post;
+use async_graphql::{EmptyMutation, Schema};
+use axum::routing::{get, post};
+use serde::Deserialize;
 use tokio::net;
 use framework::database::Database;
+use crate::graphql::handlers::graphql_ws_handler;
+use crate::graphql::query::QueryRoot;
+use crate::graphql::subscription::SubscriptionRoot;
 
 /// Configuration for the HTTP server.
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct HttpServerConfig<'a> {
-    pub port: &'a str,
+#[derive(Debug, Clone, Deserialize)]
+pub struct HttpServerConfig {
+    pub port: String,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 /// The global application state shared between all request handlers.
-struct AppState {
-    database: Database,
+pub(super) struct AppState {
+    schema: Schema<QueryRoot, EmptyMutation, SubscriptionRoot>,
 }
 
 /// The application's HTTP server. The underlying HTTP package is opaque to module consumers.
@@ -38,23 +35,15 @@ impl HttpServer {
     /// Returns a new HTTP server bound to the port specified in `config`.
     pub async fn new(
         database: Database,
-        config: HttpServerConfig<'_>,
+        config: &HttpServerConfig,
     ) -> anyhow::Result<Self> {
-        // todo: see if this twoer layer fits in
-        // let trace_layer = tower_http::trace::TraceLayer::new_for_http().make_span_with(
-        //     |request: &axum::extract::Request<_>| {
-        //         let uri = request.uri().to_string();
-        //         tracing::info_span!("http_request", method = ?request.method(), uri)
-        //     },
-        // );
+        let schema = Schema::build(QueryRoot, EmptyMutation, SubscriptionRoot)
+            .data(database)
+            .finish();
 
-        // Construct dependencies to inject into handlers.
-        let state = AppState {
-            database
-        };
-
+        let state = AppState { schema };
         let router = axum::Router::new()
-            .nest("/api", api_routes())
+            .nest("/api", graphql_routes())
             // .layer(trace_layer)
             .with_state(state);
 
@@ -67,7 +56,7 @@ impl HttpServer {
 
     /// Runs the HTTP server.
     pub async fn run(self) -> anyhow::Result<()> {
-        tracing::debug!("listening on {}", self.listener.local_addr()?);
+        tracing::debug!("Server listening on {}", self.listener.local_addr()?);
         axum::serve(self.listener, self.router)
             .await
             .context("received error from running server")?;
@@ -75,6 +64,9 @@ impl HttpServer {
     }
 }
 
-fn api_routes() -> Router<AppState> {
-    Router::new().route("/authors", post(create_author::<BS>))
+fn graphql_routes() -> axum::Router<AppState> {
+    axum::Router::new()
+        .route("/", get(handlers::graphql_playground).post(handlers::graphql_handler))
+        .route("/graphql", post(handlers::graphql_handler))
+        .route("/ws", get(graphql_ws_handler))
 }

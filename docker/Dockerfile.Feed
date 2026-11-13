@@ -1,0 +1,31 @@
+ARG RUST_VERSION=1.99
+ARG APP_NAME=feed
+
+FROM rust:${RUST_VERSION}-alpine AS chef
+# We only pay the installation cost once,
+# it will be cached from the second build onwards
+RUN apk add --no-cache \
+    pkgconfig \
+    musl-dev \
+    perl \
+    make
+RUN cargo install --locked cargo-chef
+WORKDIR /app
+
+FROM chef AS planner
+COPY . .
+RUN cargo chef prepare --recipe-path recipe.json
+
+FROM chef AS builder 
+COPY --from=planner /app/recipe.json recipe.json
+# Build dependencies - this is the caching Docker layer!
+RUN cargo chef cook --release --recipe-path recipe.json
+# Build application
+COPY . .
+RUN cargo build --release --bin feed
+
+# We do not need the Rust toolchain to run the binary!
+FROM alpine:3.24 AS final
+WORKDIR /app
+COPY --from=builder /app/target/release/feed /usr/local/bin
+ENTRYPOINT ["/usr/local/bin/feed"]

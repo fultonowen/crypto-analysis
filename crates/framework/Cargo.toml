@@ -7,5 +7,8 @@ rust-version.workspace = true
 
 [dependencies]
 anyhow = { workspace = true }
-logfire = { workspace = true}
+config = { workspace = true }
+thiserror = { workspace = true }
+logfire = { workspace = true, features = ["export-grpc"]}
 sqlx = { workspace = true, features = ["postgres"]}
+serde = { version = "1.0.229", features = ["derive"] }

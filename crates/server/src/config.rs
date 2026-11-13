@@ -1,5 +1,13 @@
+use framework::database::DatabaseConfig;
+use serde::Deserialize;
+use framework::config::EnvConfig;
+use crate::graphql::HttpServerConfig;
 
-
-pub struct Config<'a> {
-    pub database_url: &'a str,
+/// Base config for the `Server` application
+#[derive(Debug, Clone, Deserialize)]
+pub struct ServerConfig {
+    pub http: HttpServerConfig,
+    pub database: DatabaseConfig,
 }
+
+impl EnvConfig for ServerConfig {}

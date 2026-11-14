@@ -1,11 +1,12 @@
 services:
   datastore:
-    image:  timescale/timescaledb:latest-pg16
-    restart: always
+    image: timescale/timescaledb:latest-pg16
+    restart: unless-stopped
     ports:
       - "5432:5432"
     environment:
       - PGDATA=/pgdata
+      - POSTGRES_DB=collector
       - POSTGRES_PASSWORD=password
     healthcheck:
       test: [ "CMD", "pg_isready" ]
@@ -36,28 +37,31 @@ services:
   migrate:
     build:
       context: .
-      dockerfile: Docker/
+      dockerfile: Docker/Dockerfile.Migrate
     environment:
-      - DATABASE_URL=postgres://postgres:password@datastore:5432/
+      - DATABASE_URL=postgres://postgres:password@datastore:5432
     depends_on:
       datastore:
         condition: service_healthy
 
-  feed:
-    container_name: feed
+  collector:
+    container_name: collector
     build:
       context: .
       target: final
-      dockerfile: Docker/Dockerfile.Feed
+      dockerfile: Docker/Dockerfile.Collector
     environment:
       - APP_ENVIRONMENT=test
-      - APP_BINANCE__WS_HOST=TODO
-      - APP_DATABASE__URL=postgres
+      - APP_BINANCE__WS_URL=wss://stream.binance.us:9443
+      - APP_BINANCE__MAX_CONNECTION_ATTEMPTS=3
+      - APP_DATABASE__URL=postgres://postgres:password@datastore:5432
       - APP_DATABASE__MAX_CONNECTIONS=8
-      - OTEL_SERVICE_NAME=feed-handler
+      - OTEL_SERVICE_NAME=collector
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://observability:4317
       - OTEL_EXPORTER_OTLP_PROTOCOL=grpc
     depends_on:
+      migrate:
+        condition: service_completed_successfully
       observability:
         condition: service_started
 

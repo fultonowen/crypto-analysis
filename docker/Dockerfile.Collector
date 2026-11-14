@@ -1,5 +1,5 @@
 ARG RUST_VERSION=1.99
-ARG APP_NAME=feed
+ARG APP_NAME=collector
 
 FROM rust:${RUST_VERSION}-alpine AS chef
 # We only pay the installation cost once,
@@ -22,10 +22,10 @@ COPY --from=planner /app/recipe.json recipe.json
 RUN cargo chef cook --release --recipe-path recipe.json
 # Build application
 COPY . .
-RUN cargo build --release --bin feed
+RUN cargo build --release --bin collector
 
 # We do not need the Rust toolchain to run the binary!
 FROM alpine:3.24 AS final
 WORKDIR /app
-COPY --from=builder /app/target/release/feed /usr/local/bin
-ENTRYPOINT ["/usr/local/bin/feed"]
+COPY --from=builder /app/target/release/collector /usr/local/bin
+ENTRYPOINT ["/usr/local/bin/collector"]

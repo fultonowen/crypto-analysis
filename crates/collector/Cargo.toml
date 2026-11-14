@@ -1,12 +1,12 @@
 [package]
-name = "feed"
+name = "collector"
 edition.workspace = true
 version.workspace = true
 authors.workspace = true
 rust-version.workspace = true
 
 [[bin]]
-name = "feed"
+name = "collector"
 path = "src/main.rs"
 
 [[bin]] #todo: remove
@@ -25,12 +25,12 @@ model = { path = "../model" }
 anyhow = { workspace = true }
 async-trait = { workspace = true }
 axum = { workspace = true }
+bytes = { workspace = true }
 futures-util = { workspace = true }
-reqwest = { workspace = true }
 thiserror = { workspace = true }
 tokio = { workspace = true, features = ["rt-multi-thread"] }
 tokio-tungstenite = { workspace = true, features = ["native-tls-vendored"]}
 tracing = { workspace = true, features = ["attributes"]}
 serde = { workspace = true, features = ["derive"]}
 serde_json = { workspace = true }
-bytes = "1.12.1"
+sqlx = { workspace = true }

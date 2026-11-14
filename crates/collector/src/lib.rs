@@ -1,11 +1,17 @@
+use std::time::Duration;
 use bytes::Bytes;
+use tokio::sync::mpsc;
+use tokio::time::interval;
 use model::MarketEvent;
-use tokio::{
-    sync::mpsc,
-    time::{Duration, interval}
-};
+use crate::adapter::exchange::ExchangeAdapter;
+use crate::client::websocket::WsTransport;
+use crate::sink::EventSink;
 
-use crate::{adapter::exchange::ExchangeAdapter, client::websocket::WsTransport, sink::EventSink};
+pub mod adapter;
+pub mod client;
+pub mod config;
+pub mod sink;
+
 
 pub async fn run<A: ExchangeAdapter, S: EventSink>(adapter: A, mut sink: S) -> anyhow::Result<()> {
     let (raw_tx, mut raw_rx) = mpsc::channel::<Bytes>(8192);

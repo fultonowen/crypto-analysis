@@ -1,17 +1,11 @@
-pub mod pipeline;
-
-use model::MarketEvent;
 use tracing::instrument;
+use model::MarketEvent;
+use crate::sink::EventSink;
 
+/// Example [`EventSink`] implementation that processes batches of ['MarketEvent']'s and prints to stdout
 pub struct StdoutSink; // swap for TimescaleSink, KafkaSink, ...
 
-pub trait EventSink: Send + 'static {
-    fn write_batch(
-        &mut self,
-        batch: &[MarketEvent]
-    ) -> impl Future<Output = anyhow::Result<()>> + Send;
-}
-
+#[async_trait::async_trait]
 impl EventSink for StdoutSink {
     #[instrument(skip(self))]
     async fn write_batch(&mut self, batch: &[MarketEvent]) -> anyhow::Result<()> {

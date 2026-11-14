@@ -17,7 +17,9 @@ impl WsTransport {
     }
 
     /// Reconnects forever with capped backoff; returns only if the receiver is dropped.
+    //todo: Owen need to fix the backoff + retries logic
     pub async fn run(&self, tx: mpsc::Sender<Bytes>) {
+        let mut retries = 0usize;
         let mut backoff = std::time::Duration::from_millis(250);
         loop {
             match self.connect_once(&tx).await {
@@ -43,16 +45,20 @@ impl WsTransport {
                 Message::Text(t) => {
                     println!("Message Received WS: {t:?}");
                     tracing::debug!("{:?}", t);
+
                     if tx.send(Bytes::copy_from_slice(t.as_bytes())).await.is_err() {
                         return Ok(());
                     }
                 }
                 Message::Binary(b) => {
-                    if tx.send(Bytes::copy_from_slice(&b)).await.is_err() {
+                    if tx.send(b).await.is_err() {
                         return Ok(());
                     }
                 }
-                Message::Ping(p) => write.send(Message::Pong(p)).await?,
+                Message::Ping(p) => {
+                    tracing::debug!("Received ping message from websocket server");
+                    write.send(Message::Pong(p)).await?
+                },
                 Message::Close(_) => {
                     return Err(WebSocketError::UnexpectedError(anyhow!(
                         "Websocket unexpectedly closed"

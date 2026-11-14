@@ -1,8 +1,9 @@
-use feed::binance::BinanceAdapter;
-use feed::config::AppConfig;
-use feed::sink::{pipeline, StdoutSink};
-use framework::config::EnvConfig;
-use framework::observability;
+use feed::{
+    adapter::binance::BinanceAdapter,
+    config::AppConfig,
+    sink::{StdoutSink, pipeline}
+};
+use framework::{config::EnvConfig, observability};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -36,7 +37,9 @@ async fn main() -> anyhow::Result<()> {
         "crousd@trade",
         "qntusd@trade",
         "pepeusd@trade",
-
-    ].into_iter().map(String::from).collect();
+    ]
+    .into_iter()
+    .map(String::from)
+    .collect();
     pipeline::run(BinanceAdapter::new(&config.binance, streams), StdoutSink).await
 }

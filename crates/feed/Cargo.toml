@@ -9,6 +9,10 @@ rust-version.workspace = true
 name = "feed"
 path = "src/main.rs"
 
+[[bin]] #todo: remove
+name = "feed_previous"
+path = "bin/feed_previous.rs"
+
 [lib]
 path = "src/lib.rs"
 

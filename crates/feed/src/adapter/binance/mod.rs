@@ -1,20 +1,23 @@
 pub mod dto;
 
-use serde::Deserialize;
 use model::{MarketEvent, Side, Trade};
-use crate::adapter::config::FeedConfig;
-use crate::adapter::exchange::ExchangeAdapter;
+use serde::Deserialize;
+use tracing::instrument;
+
+use crate::adapter::{config::FeedConfig, exchange::ExchangeAdapter};
 
 pub struct BinanceAdapter {
+    /// e.g. wss://stream.binance.us:9443
     binance_ws_url: String,
+    /// e.g. `btcusdt@trade`
     streams: Vec<String>
-} // e.g. ["btcusdt@trade"]
+}
 
 impl BinanceAdapter {
     pub fn new(config: &FeedConfig, streams: Vec<String>) -> Self {
         Self {
             binance_ws_url: config.ws_url.clone(),
-            streams,
+            streams
         }
     }
 }
@@ -22,7 +25,7 @@ impl BinanceAdapter {
 #[derive(Deserialize)]
 struct Combined<'a> {
     #[serde(borrow)]
-    data: TradeMsg<'a>,
+    data: TradeMsg<'a>
 }
 
 #[derive(Deserialize)]
@@ -33,12 +36,11 @@ struct TradeMsg<'a> {
     q: &'a str,
     #[serde(rename = "T")]
     ts: u64,
-    m: bool, // true = buyer is maker, so the aggressor sold
+    m: bool // true = buyer is maker, so the aggressor sold
 }
 
 impl ExchangeAdapter for BinanceAdapter {
     fn url(&self) -> String {
-        // format!("wss://stream.binance.com:9443/stream?streams={}", self.streams.join("/"))
         format!("{}/ws", self.binance_ws_url)
     }
 
@@ -55,7 +57,9 @@ impl ExchangeAdapter for BinanceAdapter {
 
     fn parse(&self, raw: &[u8]) -> anyhow::Result<Option<MarketEvent>> {
         println!("Parsing!");
-        let Ok(m) = serde_json::from_slice::<TradeMsg>(raw) else { return Ok(None) };
+        let Ok(m) = serde_json::from_slice::<TradeMsg>(raw) else {
+            return Ok(None);
+        };
         println!("Parsing and using....");
         // let m = c.data;
         Ok(Some(MarketEvent::Trade(Trade {
@@ -65,8 +69,7 @@ impl ExchangeAdapter for BinanceAdapter {
             price: m.p.parse()?,
             qty: m.q.parse()?,
             ts_ms: m.ts,
-            aggressor: if m.m { Side::Sell } else { Side::Buy },
+            aggressor: if m.m { Side::Sell } else { Side::Buy }
         })))
     }
 }
-

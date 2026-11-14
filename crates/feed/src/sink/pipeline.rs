@@ -1,9 +1,11 @@
 use bytes::Bytes;
-use tokio::{sync::mpsc, time::{interval, Duration}};
 use model::MarketEvent;
-use crate::adapter::exchange::ExchangeAdapter;
-use crate::adapter::sink::EventSink;
-use crate::client::websocket::WsTransport;
+use tokio::{
+    sync::mpsc,
+    time::{Duration, interval}
+};
+
+use crate::{adapter::exchange::ExchangeAdapter, client::websocket::WsTransport, sink::EventSink};
 
 pub async fn run<A: ExchangeAdapter, S: EventSink>(adapter: A, mut sink: S) -> anyhow::Result<()> {
     let (raw_tx, mut raw_rx) = mpsc::channel::<Bytes>(8192);
@@ -12,12 +14,18 @@ pub async fn run<A: ExchangeAdapter, S: EventSink>(adapter: A, mut sink: S) -> a
     let transport = WsTransport::new(adapter.url(), adapter.subscribe_msg());
     let ws = tokio::spawn(async move { transport.run(raw_tx).await });
 
+    // todo: Owen we probably will want to take this task out of here for continuity sake
+    // we do not need a task parsing such small messages with the amount of messages we have
     let parse = tokio::spawn(async move {
         while let Some(raw) = raw_rx.recv().await {
             match adapter.parse(&raw) {
-                Ok(Some(ev)) => if ev_tx.send(ev).await.is_err() { break },
+                Ok(Some(ev)) => {
+                    if ev_tx.send(ev).await.is_err() {
+                        break;
+                    }
+                }
                 Ok(None) => {}
-                Err(e) => tracing::warn!(error = %e, "parse failed"),
+                Err(e) => tracing::warn!(error = %e, "parse failed")
             }
         }
     });
@@ -34,7 +42,9 @@ pub async fn run<A: ExchangeAdapter, S: EventSink>(adapter: A, mut sink: S) -> a
                 _ = tick.tick() => {}
             }
             if !buf.is_empty() {
-                if let Err(e) = sink.write_batch(&buf).await { tracing::error!(error = %e); }
+                if let Err(e) = sink.write_batch(&buf).await {
+                    tracing::error!(error = %e);
+                }
                 buf.clear();
             }
         }

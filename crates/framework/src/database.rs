@@ -1,11 +1,11 @@
-use serde::Deserialize;
-use sqlx::PgPool;
-use sqlx::postgres::PgPoolOptions;
 use std::ops::Deref;
+
+use serde::Deserialize;
+use sqlx::{PgPool, postgres::PgPoolOptions};
 
 #[derive(Debug, thiserror::Error)]
 pub enum DbError {
-    ConnectionError(#[from] sqlx::Error),
+    ConnectionError(#[from] sqlx::Error)
 }
 
 impl std::fmt::Display for DbError {
@@ -17,19 +17,20 @@ impl std::fmt::Display for DbError {
 #[derive(Debug, Clone, Deserialize)]
 pub struct DatabaseConfig {
     pub url: String,
-    pub max_connections: u32,
+    pub max_connections: u32
 }
 
 #[derive(Clone, Debug)]
 pub struct Database {
-    pub pool : PgPool
+    pub pool: PgPool
 }
 
 impl Database {
     pub async fn connect(config: &DatabaseConfig) -> Result<Self, DbError> {
         let conn = PgPoolOptions::new()
             .max_connections(config.max_connections)
-            .connect(&config.url).await?;
+            .connect(&config.url)
+            .await?;
         Ok(Self { pool: conn.into() })
     }
 }

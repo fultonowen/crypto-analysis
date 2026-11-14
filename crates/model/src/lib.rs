@@ -1,5 +1,8 @@
 #[derive(Debug)]
-pub enum Side { Buy, Sell }
+pub enum Side {
+    Buy,
+    Sell
+}
 
 #[derive(Debug)]
 pub struct Trade {
@@ -9,8 +12,10 @@ pub struct Trade {
     pub price: f64, // consider fixed-point i64 for production
     pub qty: f64,
     pub ts_ms: u64,
-    pub aggressor: Side,
+    pub aggressor: Side
 }
 
 #[derive(Debug)]
-pub enum MarketEvent { Trade(Trade) }
+pub enum MarketEvent {
+    Trade(Trade)
+}

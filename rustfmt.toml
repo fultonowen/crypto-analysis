@@ -1,0 +1,15 @@
+# Enable nightly-only formatting options
+unstable_features = true
+
+# Align with the latest Rust style guide
+style_edition = "2024"
+
+# Import organization (most popular reason to use nightly rustfmt)
+imports_granularity = "Crate"
+group_imports = "StdExternalCrate"
+
+# Docstring and comment formatting
+wrap_comments = true
+comment_width = 100
+format_code_in_doc_comments = true
+trailing_comma = "Never"

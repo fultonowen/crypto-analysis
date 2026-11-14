@@ -1,13 +1,13 @@
-use framework::database::DatabaseConfig;
+use framework::{config::EnvConfig, database::DatabaseConfig};
 use serde::Deserialize;
-use framework::config::EnvConfig;
+
 use crate::graphql::HttpServerConfig;
 
 /// Base config for the `Server` application
 #[derive(Debug, Clone, Deserialize)]
 pub struct ServerConfig {
     pub http: HttpServerConfig,
-    pub database: DatabaseConfig,
+    pub database: DatabaseConfig
 }
 
 impl EnvConfig for ServerConfig {}

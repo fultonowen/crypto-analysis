@@ -1,42 +1,40 @@
-pub mod query;
 pub mod handlers;
-pub mod subscription;
+pub mod query;
 pub mod schema;
+pub mod subscription;
 
 use anyhow::Context;
 use async_graphql::{EmptyMutation, Schema};
 use axum::routing::{get, post};
+use framework::database::Database;
 use serde::Deserialize;
 use tokio::net;
-use framework::database::Database;
-use crate::graphql::handlers::graphql_ws_handler;
-use crate::graphql::query::QueryRoot;
-use crate::graphql::subscription::SubscriptionRoot;
+
+use crate::graphql::{
+    handlers::graphql_ws_handler, query::QueryRoot, subscription::SubscriptionRoot
+};
 
 /// Configuration for the HTTP server.
 #[derive(Debug, Clone, Deserialize)]
 pub struct HttpServerConfig {
-    pub port: String,
+    pub port: String
 }
 
 #[derive(Clone)]
 /// The global application state shared between all request handlers.
 pub(super) struct AppState {
-    schema: Schema<QueryRoot, EmptyMutation, SubscriptionRoot>,
+    schema: Schema<QueryRoot, EmptyMutation, SubscriptionRoot>
 }
 
 /// The application's HTTP server. The underlying HTTP package is opaque to module consumers.
 pub struct HttpServer {
     router: axum::Router,
-    listener: net::TcpListener,
+    listener: net::TcpListener
 }
 
 impl HttpServer {
     /// Returns a new HTTP server bound to the port specified in `config`.
-    pub async fn new(
-        database: Database,
-        config: &HttpServerConfig,
-    ) -> anyhow::Result<Self> {
+    pub async fn new(database: Database, config: &HttpServerConfig) -> anyhow::Result<Self> {
         let schema = Schema::build(QueryRoot, EmptyMutation, SubscriptionRoot)
             .data(database)
             .finish();
@@ -66,7 +64,10 @@ impl HttpServer {
 
 fn graphql_routes() -> axum::Router<AppState> {
     axum::Router::new()
-        .route("/", get(handlers::graphql_playground).post(handlers::graphql_handler))
+        .route(
+            "/",
+            get(handlers::graphql_playground).post(handlers::graphql_handler)
+        )
         .route("/graphql", post(handlers::graphql_handler))
         .route("/ws", get(graphql_ws_handler))
 }

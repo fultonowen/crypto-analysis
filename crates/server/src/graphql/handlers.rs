@@ -1,8 +1,11 @@
-use async_graphql::http::{GraphiQLSource, ALL_WEBSOCKET_PROTOCOLS};
+use async_graphql::http::{ALL_WEBSOCKET_PROTOCOLS, GraphiQLSource};
 use async_graphql_axum::{GraphQLProtocol, GraphQLRequest, GraphQLResponse, GraphQLWebSocket};
-use axum::extract::{State, WebSocketUpgrade};
-use axum::http::HeaderMap;
-use axum::response::{Html, IntoResponse, Response};
+use axum::{
+    extract::{State, WebSocketUpgrade},
+    http::HeaderMap,
+    response::{Html, IntoResponse, Response}
+};
+
 use crate::graphql::AppState;
 
 pub(super) async fn graphql_playground() -> impl IntoResponse {
@@ -26,12 +29,11 @@ pub(super) async fn graphql_handler(
 pub(super) async fn graphql_ws_handler(
     State(schema): State<AppState>,
     protocol: GraphQLProtocol,
-    websocket: WebSocketUpgrade,
+    websocket: WebSocketUpgrade
 ) -> Response {
     websocket
         .protocols(ALL_WEBSOCKET_PROTOCOLS)
         .on_upgrade(move |socket| {
-            GraphQLWebSocket::new(socket, schema.schema.clone(), protocol)
-                .serve()
+            GraphQLWebSocket::new(socket, schema.schema.clone(), protocol).serve()
         })
 }

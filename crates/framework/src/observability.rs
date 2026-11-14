@@ -1,5 +1,4 @@
-use logfire::config::AdvancedOptions;
-use logfire::ShutdownGuard;
+use logfire::{ShutdownGuard, config::AdvancedOptions};
 
 pub fn configure() -> anyhow::Result<ShutdownGuard> {
     let logfire = logfire::configure()

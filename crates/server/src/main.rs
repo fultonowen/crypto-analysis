@@ -1,8 +1,5 @@
-use framework::config::EnvConfig;
-use framework::database::Database;
-use framework::observability;
-use server::config::ServerConfig;
-use server::graphql::HttpServer;
+use framework::{config::EnvConfig, database::Database, observability};
+use server::{config::ServerConfig, graphql::HttpServer};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {

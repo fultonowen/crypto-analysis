@@ -21,4 +21,5 @@ axum = { workspace = true, features = ["ws"]}
 tokio = { workspace = true, features = ["rt-multi-thread"] }
 tokio-stream = { workspace = true }
 tracing = { workspace = true, features = ["attributes"] }
-serde = { version = "1.0.229", features = ["derive"] }
+serde = { workspace = true, features = ["derive"] }
+sqlx = { workspace = true, features = ["runtime-tokio"]}

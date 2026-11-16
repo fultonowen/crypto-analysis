@@ -1,26 +1,30 @@
-#[derive(Debug)]
+use rust_decimal::Decimal;
+
+#[derive(Debug, Clone, PartialEq, sqlx::Type)]
+#[sqlx(type_name = "market_data.trade_side")]
 pub enum Side {
-    Buy,
-    Sell
+    BUY,
+    SELL
 }
 
 #[derive(Debug)]
 pub struct Trade {
     pub exchange: &'static str,
     pub symbol: String,
-    pub trade_id: u64,
-    pub price: f64, // consider fixed-point i64 for production
-    pub qty: f64,
-    pub ts_ms: u64,
-    pub aggressor: Side
+    pub trade_id: i64,
+    pub price: Decimal,
+    pub quantity: Decimal,
+    pub trade_time_ms: i64,
+    pub event_time_ms: i64,
+    pub side: Side
 }
 
 #[derive(Debug)]
 pub struct TickerPrice {
+    pub event_time: i64,
     pub exchange: &'static str,
     pub symbol: String,
-    pub last_price: f64,
-    pub ts_ms: u64,
+    pub last_price: Decimal
 }
 
 #[derive(Debug)]
@@ -29,18 +33,19 @@ pub enum MarketEvent {
     Trade(Trade)
 }
 
-impl MarketEvent {
-    pub fn is_trade(&self) -> bool {
-        match &self {
-            MarketEvent::Trade(_) => true,
-            _ => false
-        }
-    }
-
-    pub fn is_price(&self) -> bool {
-        match &self {
-            MarketEvent::Price(_) => true,
-            _ => false
-        }
-    }
-}
+// todo: remove?
+// impl MarketEvent {
+//     pub fn is_trade(&self) -> bool {
+//         match &self {
+//             MarketEvent::Trade(_) => true,
+//             _ => false
+//         }
+//     }
+//
+//     pub fn is_price(&self) -> bool {
+//         match &self {
+//             MarketEvent::Price(_) => true,
+//             _ => false
+//         }
+//     }
+// }

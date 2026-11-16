@@ -1,74 +1,99 @@
 use anyhow::anyhow;
-use bytes::Bytes;
 use futures_util::{SinkExt, StreamExt};
+use model::MarketEvent;
 use tokio::sync::mpsc;
 use tokio_tungstenite::{connect_async, tungstenite::Message};
 
-use crate::client::error::WebSocketError;
+use crate::{adapter::exchange::ExchangeAdapter, client::error::WebSocketError};
 
-pub struct WsTransport {
-    url: String,
-    subscribe: Option<String>
+pub struct WsTransport<T: ExchangeAdapter> {
+    adapter: T
 }
 
-impl WsTransport {
-    pub fn new(url: String, subscribe: Option<String>) -> Self {
-        Self { url, subscribe }
+impl<T> WsTransport<T>
+where
+    T: ExchangeAdapter
+{
+    pub fn new(adapter: T) -> Self {
+        Self { adapter }
     }
 
-    /// Reconnects forever with capped backoff; returns only if the receiver is dropped.
-    //todo: Owen need to fix the backoff + retries logic
-    pub async fn run(&self, tx: mpsc::Sender<Bytes>) {
-        let mut retries = 0usize;
+    /// Reconnects for 'connection_attempts' with capped backoff; returns only if the receiver is
+    /// dropped.
+    pub async fn run(&self, tx: mpsc::Sender<MarketEvent>) {
+        let mut retries = 0u32;
         let mut backoff = std::time::Duration::from_millis(250);
         loop {
             match self.connect_once(&tx).await {
-                Ok(()) => return, // consumer gone
-                Err(e) => tracing::warn!(error = %e, "ws dropped, reconnecting")
+                Ok(()) => return, // this branch indicates that the tasks have all joined
+                Err(e) if retries < self.adapter.connection_attempts() => {
+                    tokio::time::sleep(backoff).await;
+                    backoff = (backoff * 2u32.pow(retries)).min(std::time::Duration::from_secs(10));
+                    retries += 1;
+                    tracing::warn!(error = %e, "ws dropped, reconnecting")
+                }
+                Err(e) => {
+                    tracing::error!(error = %e, "ws dropped");
+                    return;
+                }
             }
-            tokio::time::sleep(backoff).await;
-            backoff = (backoff * 2).min(std::time::Duration::from_secs(10));
         }
     }
 
-    async fn connect_once(&self, tx: &mpsc::Sender<Bytes>) -> Result<(), WebSocketError> {
-        let (ws, _) = connect_async(&self.url).await?;
-        println!("WebSocket connection established");
+    async fn connect_once(&self, tx: &mpsc::Sender<MarketEvent>) -> Result<(), WebSocketError> {
+        let (ws, _) = connect_async(&self.adapter.url()).await?;
+        tracing::debug!("websocket connection established");
         let (mut write, mut read) = ws.split();
 
-        if let Some(sub) = &self.subscribe {
+        if let Some(sub) = &self.adapter.subscribe_msg() {
             write.send(Message::text(sub.clone())).await?;
         }
 
         while let Some(msg) = read.next().await {
             match msg? {
                 Message::Text(t) => {
-                    println!("Message Received WS: {t:?}");
-                    tracing::debug!("{:?}", t);
-
-                    if tx.send(Bytes::copy_from_slice(t.as_bytes())).await.is_err() {
-                        return Ok(());
-                    }
+                    tracing::debug!("websocket received {:?}", t);
+                    let _ = self.handle_msg(&tx, t.as_bytes()).await; // todo: exit only if this fails
                 }
                 Message::Binary(b) => {
-                    if tx.send(b).await.is_err() {
-                        return Ok(());
-                    }
+                    tracing::debug!("received bytes");
+                    let _ = self.handle_msg(&tx, &b).await; // todo: exit only if this fails
                 }
                 Message::Ping(p) => {
-                    tracing::debug!("Received ping message from websocket server");
+                    tracing::debug!("received ping message from websocket server");
                     write.send(Message::Pong(p)).await?
-                },
-                Message::Close(_) => {
+                }
+                Message::Close(reason) => {
+                    tracing::error!(error = ?reason, "websocket closed");
                     return Err(WebSocketError::UnexpectedError(anyhow!(
-                        "Websocket unexpectedly closed"
+                        "websocket unexpectedly closed"
                     )));
                 }
                 _ => {}
             }
         }
         Err(WebSocketError::UnexpectedError(anyhow!(
-            "WebSocket stream ended"
+            "websocket stream ended"
         )))
+    }
+
+    async fn handle_msg(
+        &self,
+        tx: &mpsc::Sender<MarketEvent>,
+        bytes: &[u8]
+    ) -> Result<(), WebSocketError> {
+        match self.adapter.parse(bytes) {
+            Ok(Some(event)) => {
+                if let Err(_) = tx.send(event).await {
+                    return Ok(()); // todo: fix this, the stream
+                }
+                Ok(())
+            }
+            Ok(None) => Ok(()),
+            Err(e) => {
+                tracing::warn!(error = %e, "websocket parse failed, ignoring");
+                Ok(())
+            }
+        }
     }
 }

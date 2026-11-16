@@ -23,8 +23,10 @@ services:
     ports:
       - "8080:8080"
     environment:
-      - ENVIRONMENT=test
-      - HOST=noneatthemoment
+      - APP_ENVIRONMENT=test
+      - APP_HTTP__PORT=8080
+      - APP_DATABASE__URL=postgres://postgres:password@datastore:5432
+      - APP_DATABASE__MAX_CONNECTIONS=8
       - OTEL_SERVICE_NAME=server
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://observability:4317
       - OTEL_EXPORTER_OTLP_PROTOCOL=grpc
@@ -68,6 +70,6 @@ services:
   observability:
     image: grafana/otel-lgtm:latest
     ports:
-      - "3000:3000"
-      - "4317:4317"
-      - "4318:4318"
+      - "3000:3000" # Grafana Web UI
+      - "4317:4317" # OTLP gRPC endpoint
+      - "4318:4318" # OTLP HTTP endpoint

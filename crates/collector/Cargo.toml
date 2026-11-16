@@ -9,10 +9,6 @@ rust-version.workspace = true
 name = "collector"
 path = "src/main.rs"
 
-[[bin]] #todo: remove
-name = "feed_previous"
-path = "bin/feed_previous.rs"
-
 [lib]
 path = "src/lib.rs"
 
@@ -24,8 +20,7 @@ model = { path = "../model" }
 # third party crates
 anyhow = { workspace = true }
 async-trait = { workspace = true }
-axum = { workspace = true }
-bytes = { workspace = true }
+chrono = { workspace = true }
 futures-util = { workspace = true }
 thiserror = { workspace = true }
 tokio = { workspace = true, features = ["rt-multi-thread"] }
@@ -33,4 +28,4 @@ tokio-tungstenite = { workspace = true, features = ["native-tls-vendored"]}
 tracing = { workspace = true, features = ["attributes"]}
 serde = { workspace = true, features = ["derive"]}
 serde_json = { workspace = true }
-sqlx = { workspace = true }
+sqlx = { workspace = true, features = ["runtime-tokio", "chrono", "rust_decimal"]}

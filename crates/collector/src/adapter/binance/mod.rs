@@ -1,21 +1,23 @@
 pub mod model;
 
 use ::model::{MarketEvent, Side, TickerPrice, Trade};
-use crate::adapter::{config::FeedConfig, exchange::ExchangeAdapter};
-use crate::adapter::binance::model::Combined;
+
+use crate::adapter::{binance::model::Combined, config::FeedConfig, exchange::ExchangeAdapter};
 
 pub struct BinanceAdapter {
     /// e.g. wss://stream.binance.us:9443
     binance_ws_url: String,
     /// e.g. ["btcusd@ticker", "btcusd@trade"]
-    streams: Vec<String>
+    streams: Vec<String>,
+    reconnection_attempts: u32
 }
 
 impl BinanceAdapter {
     pub fn new(config: &FeedConfig, streams: Vec<String>) -> Self {
         Self {
             binance_ws_url: config.ws_url.clone(),
-            streams
+            streams,
+            reconnection_attempts: config.max_connection_attempts as u32
         }
     }
 }
@@ -23,6 +25,10 @@ impl BinanceAdapter {
 impl ExchangeAdapter for BinanceAdapter {
     fn url(&self) -> String {
         format!("{}/ws", self.binance_ws_url)
+    }
+
+    fn connection_attempts(&self) -> u32 {
+        self.reconnection_attempts
     }
 
     fn subscribe_msg(&self) -> Option<String> {
@@ -37,37 +43,30 @@ impl ExchangeAdapter for BinanceAdapter {
     }
 
     fn parse(&self, raw: &[u8]) -> anyhow::Result<Option<MarketEvent>> {
-        println!("Parsing!");
         let Ok(m) = serde_json::from_slice::<Combined>(raw) else {
             let res = serde_json::from_slice::<Combined>(raw);
-            eprintln!("Parsing failed: {res:?}");
+            tracing::warn!(raw=?raw, "parsing binance message failed");
+            eprintln!("Parsing failed: {res:?}"); // todo: take this out
             return Ok(None);
         };
-        println!("Parsing and using....");
+        println!("Parsing and using...."); // todo: remove
         match m {
-            Combined::Trade(m) => {
-                Ok(Some(MarketEvent::Trade(Trade {
-                    exchange: "binance",
-                    symbol: m.symbol.to_owned(),
-                    trade_id: m.trade_id as u64,
-                    price: m.price.parse()?,
-                    qty: m.quantity.parse()?,
-                    ts_ms: m.trade_time as u64,
-                    aggressor: if m.is_maker { Side::Sell } else { Side::Buy }
-                })))
-            }
-            Combined::Ticker(p) => {
-                Ok(Some(
-                    MarketEvent::Price(
-                        TickerPrice {
-                            exchange: "binance",
-                            symbol: p.symbol.to_owned(),
-                            last_price: p.last_px.parse()?,
-                            ts_ms: p.event_time as u64,
-                        }
-                    )
-                ))
-            }
+            Combined::Trade(m) => Ok(Some(MarketEvent::Trade(Trade {
+                exchange: "binance",
+                symbol: m.symbol.to_owned(),
+                trade_id: m.trade_id,
+                price: m.price.parse()?,
+                quantity: m.quantity.parse()?,
+                trade_time_ms: m.trade_time,
+                event_time_ms: m.event_time,
+                side: if m.is_maker { Side::SELL } else { Side::BUY }
+            }))),
+            Combined::Ticker(p) => Ok(Some(MarketEvent::Price(TickerPrice {
+                event_time: p.event_time,
+                exchange: "binance",
+                symbol: p.symbol.to_owned(),
+                last_price: p.last_px.parse()?
+            })))
         }
     }
 }

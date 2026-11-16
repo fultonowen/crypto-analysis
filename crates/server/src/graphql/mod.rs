@@ -42,7 +42,6 @@ impl HttpServer {
         let state = AppState { schema };
         let router = axum::Router::new()
             .nest("/api", graphql_routes())
-            // .layer(trace_layer)
             .with_state(state);
 
         let listener = net::TcpListener::bind(format!("0.0.0.0:{}", config.port))

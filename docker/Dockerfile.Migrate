@@ -3,7 +3,7 @@ FROM rust:alpine
 RUN apk add --no-cache build-base openssl-dev pkgconfig
 ENV RUSTFLAGS="-C target-feature=-crt-static"
 
-RUN cargo install --locked sqlx-cli --no-default-features --features native-tls,postgres
+RUN cargo install --locked sqlx-cli@0.9.0 --no-default-features --features native-tls,postgres
 
 COPY /migrations /migrations
 

@@ -2,7 +2,7 @@ use async_graphql::http::{ALL_WEBSOCKET_PROTOCOLS, GraphiQLSource};
 use async_graphql_axum::{GraphQLProtocol, GraphQLRequest, GraphQLResponse, GraphQLWebSocket};
 use axum::{
     extract::{State, WebSocketUpgrade},
-    http::HeaderMap,
+    http::{HeaderMap, StatusCode},
     response::{Html, IntoResponse, Response}
 };
 
@@ -36,4 +36,8 @@ pub(super) async fn graphql_ws_handler(
         .on_upgrade(move |socket| {
             GraphQLWebSocket::new(socket, schema.schema.clone(), protocol).serve()
         })
+}
+
+pub(super) async fn health() -> StatusCode {
+    StatusCode::OK
 }

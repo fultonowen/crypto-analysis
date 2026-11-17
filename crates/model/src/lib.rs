@@ -1,3 +1,4 @@
+use chrono::{DateTime, Utc};
 use rust_decimal::Decimal;
 
 #[derive(Debug, Clone, PartialEq, sqlx::Type)]
@@ -7,24 +8,28 @@ pub enum Side {
     SELL
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, sqlx::FromRow)]
 pub struct Trade {
-    pub exchange: &'static str,
+    pub trade_time: DateTime<Utc>,
     pub symbol: String,
     pub trade_id: i64,
+    pub side: Side,
     pub price: Decimal,
     pub quantity: Decimal,
-    pub trade_time_ms: i64,
-    pub event_time_ms: i64,
-    pub side: Side
+    pub exchange: String,
+    pub event_time: DateTime<Utc>
 }
 
-#[derive(Debug)]
+#[derive(Debug, sqlx::FromRow)]
 pub struct TickerPrice {
-    pub event_time: i64,
-    pub exchange: &'static str,
+    pub event_time: DateTime<Utc>,
     pub symbol: String,
-    pub last_price: Decimal
+    pub last_price: Decimal,
+    pub open_price: Decimal,
+    pub high_price: Decimal,
+    pub low_price: Decimal,
+    pub w_avg_price: Decimal,
+    pub exchange: String
 }
 
 #[derive(Debug)]
@@ -32,20 +37,3 @@ pub enum MarketEvent {
     Price(TickerPrice),
     Trade(Trade)
 }
-
-// todo: remove?
-// impl MarketEvent {
-//     pub fn is_trade(&self) -> bool {
-//         match &self {
-//             MarketEvent::Trade(_) => true,
-//             _ => false
-//         }
-//     }
-//
-//     pub fn is_price(&self) -> bool {
-//         match &self {
-//             MarketEvent::Price(_) => true,
-//             _ => false
-//         }
-//     }
-// }

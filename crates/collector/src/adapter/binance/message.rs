@@ -1,5 +1,8 @@
 use serde::Deserialize;
 
+/// Outlines all the supported Binance message streams.
+/// Schema deserialization is decided based on the
+/// "e" -> event_type entry.
 #[derive(Deserialize, Debug)]
 #[serde(tag = "e")]
 pub enum Combined<'a> {
@@ -32,10 +35,10 @@ pub struct TradeMsg<'a> {
     pub ignore: bool
 }
 
-/// Intended for use when subscribing to the @ticker stream
+/// Intended for use when subscribing to the @ticker stream.
+/// Interval or windowed @ticker streams are currently unsupported.
 #[derive(Debug, Deserialize)]
 pub struct TickerPrice<'a> {
-    // pub e: &'a str, // event type // todo: see if this works
     #[serde(rename(deserialize = "E"))]
     pub event_time: i64,
     #[serde(rename(deserialize = "s"))]

@@ -11,10 +11,11 @@ pub trait EventSink: Send + 'static {
     async fn write_batch(&mut self, batch: &[MarketEvent]) -> anyhow::Result<()>;
 }
 
-// todo: tomorrow I was converting the lib code to a simple sink method that handles
-// message processing
+// todo: with high throughput for MarketEvents, writing one event at a time is vastly inefficient
 pub async fn run<S: EventSink>(mut event_rx: mpsc::Receiver<MarketEvent>, sink: S) {
     while let Some(event) = event_rx.recv().await {
-        let _ = sink.write_one(event).await; // todo: ignoring result may lose data
+        if let Err(e) = sink.write_one(event).await {
+            tracing::error!(?e, "error while writing event");
+        }
     }
 }

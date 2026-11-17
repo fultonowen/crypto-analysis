@@ -8,7 +8,7 @@ pub struct SubscriptionRoot;
 #[Subscription]
 impl SubscriptionRoot {
     // todo: remove sample endpoint, just for testing
-    async fn live(&self) -> impl Stream<Item = i32> {
+    async fn sample_stream(&self) -> impl Stream<Item = i32> {
         IntervalStream::new(tokio::time::interval(Duration::from_secs(10))).map(|_| 1337i32)
     }
 }

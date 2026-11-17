@@ -1,8 +1,9 @@
-pub mod model;
+pub mod message;
 
-use ::model::{MarketEvent, Side, TickerPrice, Trade};
+use chrono::DateTime;
+use model::{MarketEvent, Side, TickerPrice, Trade};
 
-use crate::adapter::{binance::model::Combined, config::FeedConfig, exchange::ExchangeAdapter};
+use crate::adapter::{binance::message::Combined, config::FeedConfig, exchange::ExchangeAdapter};
 
 pub struct BinanceAdapter {
     /// e.g. wss://stream.binance.us:9443
@@ -44,28 +45,32 @@ impl ExchangeAdapter for BinanceAdapter {
 
     fn parse(&self, raw: &[u8]) -> anyhow::Result<Option<MarketEvent>> {
         let Ok(m) = serde_json::from_slice::<Combined>(raw) else {
-            let res = serde_json::from_slice::<Combined>(raw);
             tracing::warn!(raw=?raw, "parsing binance message failed");
-            eprintln!("Parsing failed: {res:?}"); // todo: take this out
             return Ok(None);
         };
-        println!("Parsing and using...."); // todo: remove
         match m {
             Combined::Trade(m) => Ok(Some(MarketEvent::Trade(Trade {
-                exchange: "binance",
+                exchange: "binance".to_owned(),
                 symbol: m.symbol.to_owned(),
                 trade_id: m.trade_id,
                 price: m.price.parse()?,
                 quantity: m.quantity.parse()?,
-                trade_time_ms: m.trade_time,
-                event_time_ms: m.event_time,
+                trade_time: DateTime::from_timestamp_millis(m.trade_time)
+                    .ok_or(anyhow::anyhow!("trade time is invalid"))?,
+                event_time: DateTime::from_timestamp_millis(m.event_time)
+                    .ok_or(anyhow::anyhow!("event time is invalid"))?,
                 side: if m.is_maker { Side::SELL } else { Side::BUY }
             }))),
             Combined::Ticker(p) => Ok(Some(MarketEvent::Price(TickerPrice {
-                event_time: p.event_time,
-                exchange: "binance",
+                event_time: DateTime::from_timestamp_millis(p.event_time)
+                    .ok_or(anyhow::anyhow!("event time is invalid"))?,
+                exchange: "binance".to_owned(),
                 symbol: p.symbol.to_owned(),
-                last_price: p.last_px.parse()?
+                last_price: p.last_px.parse()?,
+                open_price: p.open_px.parse()?,
+                high_price: p.high_px.parse()?,
+                low_price: p.low_px.parse()?,
+                w_avg_price: p.w_avg_px.parse()?
             })))
         }
     }

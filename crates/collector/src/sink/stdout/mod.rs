@@ -16,8 +16,7 @@ impl EventSink for StdoutSink {
 
     #[instrument(skip(self))]
     async fn write_batch(&mut self, batch: &[MarketEvent]) -> anyhow::Result<()> {
-        println!("batch = {:#?}", batch);
-        println!("flushed {} events", batch.len());
+        println!("flushed {} events, batch = {:#?}", batch.len(), batch);
         Ok(())
     }
 }

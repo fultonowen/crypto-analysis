@@ -1,5 +1,7 @@
 pub mod handlers;
+pub mod inputs;
 pub mod query;
+pub mod response;
 pub mod schema;
 pub mod subscription;
 
@@ -11,12 +13,15 @@ use serde::Deserialize;
 use tokio::net;
 
 use crate::graphql::{
-    handlers::graphql_ws_handler, query::QueryRoot, subscription::SubscriptionRoot
+    handlers::{graphql_ws_handler, health},
+    query::QueryRoot,
+    subscription::SubscriptionRoot
 };
 
 /// Configuration for the HTTP server.
 #[derive(Debug, Clone, Deserialize)]
 pub struct HttpServerConfig {
+    pub address: String,
     pub port: String
 }
 
@@ -41,12 +46,13 @@ impl HttpServer {
 
         let state = AppState { schema };
         let router = axum::Router::new()
+            .nest("/api", health_routes())
             .nest("/api", graphql_routes())
             .with_state(state);
 
-        let listener = net::TcpListener::bind(format!("0.0.0.0:{}", config.port))
+        let listener = net::TcpListener::bind(format!("{}:{}", config.address, config.port))
             .await
-            .with_context(|| format!("failed to listen on {}", config.port))?;
+            .with_context(|| format!("failed to listen on {}:{}", config.address, config.port))?;
 
         Ok(Self { router, listener })
     }
@@ -69,4 +75,8 @@ fn graphql_routes() -> axum::Router<AppState> {
         )
         .route("/graphql", post(handlers::graphql_handler))
         .route("/ws", get(graphql_ws_handler))
+}
+
+fn health_routes() -> axum::Router<AppState> {
+    axum::Router::new().route("/health", get(health))
 }

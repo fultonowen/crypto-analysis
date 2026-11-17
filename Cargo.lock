@@ -79,6 +79,7 @@ dependencies = [
  "asynk-strim",
  "base64 0.22.1",
  "bytes",
+ "chrono",
  "fast_chemail",
  "fnv",
  "futures-util",
@@ -90,6 +91,7 @@ dependencies = [
  "num-traits",
  "pin-project-lite",
  "regex",
+ "rust_decimal",
  "serde",
  "serde_json",
  "serde_urlencoded",
@@ -1491,9 +1493,9 @@ checksum = "791930b43c0d5973160d90a8f3894509f2b273430f5c5c73b668636d0287c5c0"
 
 [[package]]
 name = "itertools"
-version = "0.10.5"
+version = "0.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b0fd2260e829bddf4cb6ea802289de2f86d6a7a690192fbe91b3f46e0f2c8473"
+checksum = "2b192c782037fadd9cfa75548310488aabdbf3d2da73885b31bd0abd03351285"
 dependencies = [
  "either",
 ]
@@ -1725,6 +1727,7 @@ dependencies = [
 name = "model"
 version = "0.1.0"
 dependencies = [
+ "chrono",
  "rust_decimal",
  "sqlx",
 ]
@@ -2722,7 +2725,10 @@ dependencies = [
  "async-graphql",
  "async-graphql-axum",
  "axum",
+ "chrono",
  "framework",
+ "model",
+ "rust_decimal",
  "serde",
  "sqlx",
  "tokio",

@@ -5,7 +5,6 @@ use framework::{config::EnvConfig, observability};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    println!("Starting collector");
     let otel_guard = observability::configure()?;
     let config = AppConfig::from_env()?;
     // todo: read streams from configuration

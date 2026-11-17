@@ -1,4 +1,3 @@
-use chrono::{DateTime, Utc};
 use framework::database::{Database, DatabaseConfig, DbError};
 use model::{MarketEvent, Side, TickerPrice, Trade};
 use tracing::instrument;
@@ -17,18 +16,19 @@ impl TimescaleDBSink {
 
     #[instrument(name = "price_write", skip_all)]
     async fn write_price_event(&self, event: TickerPrice) -> Result<(), DbError> {
-        let event_time: DateTime<Utc> =
-            DateTime::from_timestamp_millis(event.event_time).expect("event time is invalid"); // todo: handle this
-
         let write_result = sqlx::query_as!(
             TickerPrice,
             r#"
-            INSERT INTO market_data.prices (event_time, symbol, price, exchange)
-            VALUES ($1, $2, $3, $4)
+            INSERT INTO market_data.prices (event_time, symbol, last_price, open_price, high_price, low_price, w_avg_price, exchange)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
             "#,
-            event_time,
+            event.event_time,
             event.symbol,
             event.last_price,
+            event.open_price,
+            event.high_price,
+            event.low_price,
+            event.w_avg_price,
             event.exchange
         )
         .execute(&self.database.pool)
@@ -39,27 +39,23 @@ impl TimescaleDBSink {
 
     #[instrument(name = "trade_write", skip_all)]
     async fn write_trade_event(&self, event: Trade) -> Result<(), DbError> {
-        let event_time: DateTime<Utc> =
-            DateTime::from_timestamp_millis(event.event_time_ms).expect("event time is invalid"); // todo: handle this
-        let trade_time: DateTime<Utc> =
-            DateTime::from_timestamp_millis(event.trade_time_ms).expect("trade time is invalid");
         let write_result = sqlx::query_as!(
             Trade,
             r#"
             INSERT INTO market_data.trades (trade_time, symbol, trade_id, side, price, quantity, exchange, event_time)
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
             "#,
-            trade_time,
+            event.trade_time,
             event.symbol,
             event.trade_id,
             event.side as Side,
             event.price,
             event.quantity,
             event.exchange,
-            event_time
+            event.event_time
         )
             .execute(&self.database.pool)
-            .await;
+            .await?;
         tracing::debug!(?write_result, "trade event result");
         Ok(())
     }
@@ -68,7 +64,6 @@ impl TimescaleDBSink {
 #[async_trait::async_trait]
 impl EventSink for TimescaleDBSink {
     async fn write_one(&self, event: MarketEvent) -> anyhow::Result<()> {
-        // todo: handle this result
         match event {
             MarketEvent::Trade(trade) => {
                 self.write_trade_event(trade).await?;
@@ -82,10 +77,8 @@ impl EventSink for TimescaleDBSink {
     }
 
     #[instrument(skip_all)]
-    async fn write_batch(&mut self, batch: &[MarketEvent]) -> anyhow::Result<()> {
-        // todo: review this
-        println!("batch = {:#?}", batch);
-        println!("flushed {} events", batch.len());
+    async fn write_batch(&mut self, _batch: &[MarketEvent]) -> anyhow::Result<()> {
+        // todo: future - need to be able to write batches of ['MarketEvent']'s to database
         Ok(())
     }
 }

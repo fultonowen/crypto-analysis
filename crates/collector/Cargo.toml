@@ -23,7 +23,7 @@ async-trait = { workspace = true }
 chrono = { workspace = true }
 futures-util = { workspace = true }
 thiserror = { workspace = true }
-tokio = { workspace = true, features = ["rt-multi-thread"] }
+tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
 tokio-tungstenite = { workspace = true, features = ["native-tls-vendored"]}
 tracing = { workspace = true, features = ["attributes"]}
 serde = { workspace = true, features = ["derive"]}

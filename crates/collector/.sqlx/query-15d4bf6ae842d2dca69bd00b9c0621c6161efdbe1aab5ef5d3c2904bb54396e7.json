@@ -10,11 +10,11 @@
         "Int8",
         {
           "Custom": {
-            "name": "trade_side",
+            "name": "market_data.trade_side",
             "kind": {
               "Enum": [
-                "buy",
-                "sell"
+                "BUY",
+                "SELL"
               ]
             }
           }

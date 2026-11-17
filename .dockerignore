@@ -31,3 +31,5 @@
 /target
 LICENSE
 README.md
+rustfmt.toml
+

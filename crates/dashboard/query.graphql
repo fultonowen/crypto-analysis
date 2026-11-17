@@ -1,0 +1,23 @@
+query TradesBySymbol($input: TradeInput!){
+    trades(input:$input) {
+        tradeTime
+        symbol
+        price
+        quantity
+        side
+        exchange
+        eventTime
+    }
+}
+
+query Candle1mBySymbol($input: TradeInput!){
+    candle1Minute(input: $input) {
+            timeBucket
+            symbol
+            open
+            high
+            low
+            close
+            volume
+        }
+}

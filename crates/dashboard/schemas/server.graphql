@@ -1,0 +1,64 @@
+schema {
+  query: QueryRoot
+  subscription: SubscriptionRoot
+}
+type Candle1Minute {
+  timeBucket: DateTime!
+  symbol: String!
+  open: Decimal!
+  high: Decimal!
+  low: Decimal!
+  close: Decimal!
+  volume: Decimal!
+}
+
+"""
+Implement the DateTime<Utc> scalar
+
+The input/output is a string in RFC3339 format.
+"""
+scalar DateTime
+
+scalar Decimal
+
+type QueryRoot {
+  """
+  A trade time ascending capture of trades for a specific time period
+  """
+  trades(input: TradeInput!): [TradeData!]!
+  """
+  1 minute candle OHLCV data based on trading tick data
+  """
+  candle1Minute(input: TradeInput!): [Candle1Minute!]!
+}
+
+type SubscriptionRoot {
+  sampleStream: Int!
+}
+
+type TradeData {
+  tradeTime: DateTime!
+  symbol: String!
+  price: Decimal!
+  quantity: Decimal!
+  side: TradeSide!
+  exchange: String!
+  eventTime: DateTime!
+}
+
+input TradeInput {
+  symbol: String!
+  startTime: DateTime
+  endTime: DateTime
+}
+
+enum TradeSide {
+  buy
+  sell
+}
+
+"""
+Indicates that an Input Object is a OneOf Input Object (and thus requires exactly one of its field be provided)
+"""
+directive @oneOf on INPUT_OBJECT
+

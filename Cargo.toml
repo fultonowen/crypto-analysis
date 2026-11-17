@@ -1,13 +1,14 @@
 [workspace]
 resolver = "2"
 members = ["crates/*"]
-exclude = ["crates/dashboard"]
 
 [workspace.package]
 authors = ["Owen Fulton <fultonowen@gmail.com>"]
 version = "0.1.0"
 edition = "2024"
 rust-version = "1.99.0"
+readme = "README.md"
+license = "MIT"
 
 [workspace.dependencies]
 anyhow = "1.0.104"
@@ -32,14 +33,9 @@ thiserror = "2.0.21"
 tokio = "1.54.1"
 tokio-stream = "0.1.19"
 tokio-tungstenite = "0.30.0"
-uuid = "1.29.2"
 
 # graphical interfaces
 leptos = "0.8.23"
-leptos_axum = "0.8.10"
-leptos-chartistry = "0.2.3"
-leptos_meta = "0.8.7"
-leptos_router = "0.8.17"
 trading-charts = "1.0.0"
 wasm-bindgen = "0.2.130"
 
@@ -47,3 +43,10 @@ wasm-bindgen = "0.2.130"
 tracing = "0.1.44"
 tracing-subscriber = "0.3.23"
 logfire = "0.14.0"
+
+# Size-optimized release builds, used by the examples.
+[profile.release]
+opt-level = 'z'
+lto = true
+codegen-units = 1
+panic = "abort"

@@ -52,10 +52,10 @@ GROUP BY symbol, bucket
     WITH NO DATA;
 
 SELECT add_continuous_aggregate_policy(
-       'market_data.trade_statistics_1h',
-       NULL,
-       NULL,
-       schedule_interval => INTERVAL '1 minute'
+    'market_data.trade_statistics_1h',
+    start_offset => INTERVAL '3 hour',
+    end_offset => INTERVAL '1 hour',
+    schedule_interval => INTERVAL '1 hour'
 );
 
 CREATE MATERIALIZED VIEW market_data.trade_statistics_1m
@@ -73,16 +73,16 @@ GROUP BY symbol, bucket
     WITH NO DATA;
 
 SELECT add_continuous_aggregate_policy(
-        'market_data.trade_statistics_1m',
-        start_offset => INTERVAL '3 hour',
-        end_offset => INTERVAL '1 hour',
-        schedule_interval => INTERVAL '1 hour'
+    'market_data.trade_statistics_1m',
+    start_offset => INTERVAL '1 hour',
+    end_offset => INTERVAL '1 minute',
+    schedule_interval => INTERVAL '1 minute'
 );
 
-CREATE MATERIALIZED VIEW candles_1m
+CREATE MATERIALIZED VIEW market_data.candles_1m
 WITH (timescaledb.continuous, timescaledb.materialized_only = 'false') AS
 SELECT
-    time_bucket('1 minute', trade_time) AS bucket,
+    time_bucket('1 minute', trade_time) AS time_bucket,
     symbol,
     first(price, trade_time) AS open,
     max(price) AS high,
@@ -90,12 +90,12 @@ SELECT
     last(price, trade_time) AS close,
     sum(quantity) AS volume
 FROM market_data.trades
-GROUP BY bucket, symbol
+GROUP BY time_bucket, symbol
     WITH NO DATA;
 
 SELECT add_continuous_aggregate_policy(
-    'candles_1m',
+    'market_data.candles_1m',
     start_offset => INTERVAL '1 hour',
-    end_offset        => INTERVAL '1 minute',
+    end_offset => INTERVAL '1 minute',
     schedule_interval => INTERVAL '1 minute'
 );

@@ -2,7 +2,13 @@ use async_graphql::{Context, Object, Result};
 use framework::database::Database;
 use model::Trade;
 
-use crate::graphql::{inputs::trade::TradeInput, response::trade::TradeData};
+use crate::{
+    graphql::{
+        inputs::trade::TradeInput,
+        response::{candle::Candle1Minute, trade::TradeData}
+    },
+    models::trade::Candle1Min
+};
 
 pub struct QueryRoot;
 
@@ -29,7 +35,7 @@ impl QueryRoot {
             "#,
             input.symbol.0
         )
-        .fetch_all(&db.pool)
+        .fetch_all(db.pool())
         .await?
         .into_iter()
         .map(TradeData::from)
@@ -37,8 +43,35 @@ impl QueryRoot {
         Ok(query)
     }
 
-    async fn trade_statistics(&self, ctx: &Context<'_>) -> Result<Vec<String>> {
+    /// 1 minute candle OHLCV data based on trading tick data
+    async fn candle_1minute(
+        &self,
+        ctx: &Context<'_>,
+        input: TradeInput
+    ) -> Result<Vec<Candle1Minute>> {
         let db = ctx.data::<Database>()?;
-        Ok(vec![])
+        let rows = sqlx::query_as!(
+            Candle1Min,
+            r#"
+            SELECT
+                time_bucket as "time_bucket!",
+                symbol as "symbol!",
+                open as "open!",
+                high as "high!",
+                low as "low!",
+                close as "close!",
+                volume as "volume!"
+            FROM market_data.candles_1m
+            WHERE symbol = $1
+            ORDER BY time_bucket ASC
+            "#,
+            input.symbol.0
+        )
+        .fetch_all(db.pool())
+        .await?
+        .into_iter()
+        .map(Candle1Minute::from)
+        .collect();
+        Ok(rows)
     }
 }

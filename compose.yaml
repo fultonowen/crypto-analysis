@@ -60,6 +60,7 @@ services:
   migrate:
     build:
       context: .
+      target: final
       dockerfile: Docker/Dockerfile.Migrate
     environment:
       - DATABASE_URL=postgres://postgres:password@datastore:5432
@@ -82,6 +83,7 @@ services:
       - OTEL_SERVICE_NAME=collector
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://observability:4317
       - OTEL_EXPORTER_OTLP_PROTOCOL=grpc
+      - RUST_LOG=debug
     depends_on:
       migrate:
         condition: service_completed_successfully

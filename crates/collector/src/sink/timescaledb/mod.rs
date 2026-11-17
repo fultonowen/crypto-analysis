@@ -31,7 +31,7 @@ impl TimescaleDBSink {
             event.w_avg_price,
             event.exchange
         )
-        .execute(&self.database.pool)
+        .execute(self.database.pool())
         .await?;
         tracing::debug!(?write_result, "price event result");
         Ok(())
@@ -54,7 +54,7 @@ impl TimescaleDBSink {
             event.exchange,
             event.event_time
         )
-            .execute(&self.database.pool)
+            .execute(self.database.pool())
             .await?;
         tracing::debug!(?write_result, "trade event result");
         Ok(())

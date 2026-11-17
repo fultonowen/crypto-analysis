@@ -22,7 +22,7 @@ pub struct DatabaseConfig {
 
 #[derive(Clone, Debug)]
 pub struct Database {
-    pub pool: PgPool
+    pool: PgPool
 }
 
 impl Database {
@@ -32,6 +32,11 @@ impl Database {
             .connect(&config.url)
             .await?;
         Ok(Self { pool: conn.into() })
+    }
+
+    /// Gives a reference to the underlying ['PgPool']
+    pub fn pool(&self) -> &PgPool {
+        &self.pool
     }
 }
 

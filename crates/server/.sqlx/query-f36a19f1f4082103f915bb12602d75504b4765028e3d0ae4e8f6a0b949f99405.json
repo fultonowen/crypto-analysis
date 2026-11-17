@@ -1,0 +1,122 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT\n                trade_time,\n                symbol,\n                trade_id,\n                side AS \"side: _\",\n                price,\n                quantity,\n                exchange,\n                event_time\n            FROM market_data.trades\n            WHERE symbol = $1\n            ORDER BY trade_time ASC\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "trade_time",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "market_data.trades",
+            "name": "trade_time"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "symbol",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "market_data.trades",
+            "name": "symbol"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "trade_id",
+        "type_info": "Int8",
+        "origin": {
+          "Table": {
+            "table": "market_data.trades",
+            "name": "trade_id"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "side: _",
+        "type_info": {
+          "Custom": {
+            "name": "market_data.trade_side",
+            "kind": {
+              "Enum": [
+                "BUY",
+                "SELL"
+              ]
+            }
+          }
+        },
+        "origin": {
+          "Table": {
+            "table": "market_data.trades",
+            "name": "side"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "price",
+        "type_info": "Numeric",
+        "origin": {
+          "Table": {
+            "table": "market_data.trades",
+            "name": "price"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "quantity",
+        "type_info": "Numeric",
+        "origin": {
+          "Table": {
+            "table": "market_data.trades",
+            "name": "quantity"
+          }
+        }
+      },
+      {
+        "ordinal": 6,
+        "name": "exchange",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "market_data.trades",
+            "name": "exchange"
+          }
+        }
+      },
+      {
+        "ordinal": 7,
+        "name": "event_time",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "market_data.trades",
+            "name": "event_time"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "f36a19f1f4082103f915bb12602d75504b4765028e3d0ae4e8f6a0b949f99405"
+}

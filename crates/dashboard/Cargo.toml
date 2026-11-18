@@ -16,6 +16,7 @@ path = "src/lib.rs"
 
 [dependencies]
 # third party crates
+anyhow = { workspace = true }
 cynic = { workspace = true, features = ["http-reqwest"] }
 leptos = { workspace = true, features = ["csr"] }
 reqwest = { workspace = true, features = [] }

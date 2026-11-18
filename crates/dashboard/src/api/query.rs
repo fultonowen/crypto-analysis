@@ -5,9 +5,8 @@ use trading_charts::data::{OhlcvData, UTCTimestamp};
 use crate::api::models::{Candle1mBySymbol, Candle1mBySymbolVariables, TradeInput};
 
 /// Querying the GraphQL server to retrieve OHLCV data
-pub async fn trades_by_symbol(symbol: String) -> Vec<OhlcvData> {
+pub async fn trades_by_symbol(graphql_endpoint: String, symbol: String) -> Vec<OhlcvData> {
     log::info!("query trades_by_symbol: {}", symbol);
-    let host = "http://localhost:8080/api/graphql"; // todo: get from env vars
     let input = Candle1mBySymbolVariables {
         input: TradeInput {
             symbol: symbol.as_str(),
@@ -17,7 +16,7 @@ pub async fn trades_by_symbol(symbol: String) -> Vec<OhlcvData> {
     };
     let operation = Candle1mBySymbol::build(input);
     let Ok(response) = reqwest::Client::new()
-        .post(host)
+        .post(graphql_endpoint)
         .json(&operation)
         .send()
         .await else {

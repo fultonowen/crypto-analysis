@@ -4,8 +4,7 @@ use leptos::prelude::*;
 use trading_charts::{
     chart::Chart,
     data::{
-        Candlestick, HistogramData, LegendOptions, MarkerPosition, MarkerShape, MarkerStyle,
-        OhlcvData, PriceLineOptions, ValueData, options::LineWidth, register_marker_style,
+        Candlestick, HistogramData, LegendOptions, MarkerPosition, MarkerShape, MarkerStyle, PriceLineOptions, ValueData, options::LineWidth, register_marker_style,
     },
     series::{
         areas::{AreaSeries, AreaSeriesOptions},
@@ -19,10 +18,9 @@ use trading_charts::{
 
 use super::base_options;
 use crate::api::query;
-use crate::
-transform::{candlesticks, closes, moving_average}
-;
 use crate::components::choice::Choice;
+use crate::config::AppConfig;
+use crate::transform::{candlesticks, closes, moving_average};
 
 #[derive(Clone, Copy, PartialEq)]
 enum Kind {
@@ -45,8 +43,9 @@ pub fn SeriesView(form_item: RwSignal<String>) -> impl IntoView {
     let base_series_options = RwSignal::new(BaselineSeriesOptions::new());
 
     let async_data = LocalResource::new(move || {
+        let context = expect_context::<AppConfig>();
         let value = form_item.get().clone();
-        query::trades_by_symbol(value)
+        query::trades_by_symbol(context.graphql_endpoint, value)
     });
 
     let handle = set_interval_with_handle(

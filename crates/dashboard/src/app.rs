@@ -2,6 +2,7 @@ use leptos::prelude::*;
 
 use crate::views::series::SeriesView;
 use crate::components::form::ControlledForm;
+use crate::config::AppConfig;
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum Demo {
@@ -28,7 +29,8 @@ impl Demo {
 }
 
 #[component]
-pub fn App() -> impl IntoView {
+pub fn App(config: AppConfig) -> impl IntoView {
+    provide_context(config);
     let demo = RwSignal::new(Demo::Series);
     let form_item = RwSignal::new(String::from("BTCUSD"));
     view! {

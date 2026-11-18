@@ -12,6 +12,8 @@ RUN rustup target add wasm32-unknown-unknown
 WORKDIR /app
 
 FROM base AS final
+# required as trunk has no way to dynamically pass environment variables at runtime
+ARG APP_GRAPHQL_ENDPOINT=http://server:8080/api/graphql
 RUN rustup target add wasm32-unknown-unknown
 COPY . .
 WORKDIR /app/crates/dashboard

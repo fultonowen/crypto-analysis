@@ -1,6 +1,5 @@
 pub mod series;
 
-use leptos::prelude::*;
 use trading_charts::data::options::{ChartOptions, layout::LayoutOptions};
 
 /// Chart options shared by the demos: the chart follows the size of its container.

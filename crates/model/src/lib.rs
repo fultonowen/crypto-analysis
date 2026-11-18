@@ -8,6 +8,7 @@ pub enum Side {
     SELL
 }
 
+/// Represents a trading event from an exchange/feed.
 #[derive(Debug, Clone, sqlx::FromRow)]
 pub struct Trade {
     pub trade_time: DateTime<Utc>,
@@ -20,6 +21,7 @@ pub struct Trade {
     pub event_time: DateTime<Utc>
 }
 
+/// Represents a stream of prices from an exchange/feed.
 #[derive(Debug, sqlx::FromRow)]
 pub struct TickerPrice {
     pub event_time: DateTime<Utc>,

@@ -1,8 +1,6 @@
 //! Helpers for calculating different graphing items
 use trading_charts::data::{Candlestick, OhlcvData, ValueData};
 
-const DAY: f64 = 86_400.0;
-
 fn round(value: f64) -> f64 {
     (value * 100.0).round() / 100.0
 }
@@ -34,6 +32,19 @@ pub fn moving_average(data: &[OhlcvData], length: usize) -> Vec<ValueData> {
             ValueData::new(item.time, round(sum / length as f64))
         })
         .collect()
+}
+
+/// Simple vwap data over time points, since times are given as 1 minute bars already
+pub fn vwap_rolling(data: &[OhlcvData]) -> Vec<ValueData> {
+    let (_, data) = data.iter().fold((0f64, Vec::new()), |mut acc, item| {
+        let typical = (item.high + item.low + item.close) / 3.0;
+        let pvt = item.volume * typical;
+        acc.0 += pvt;
+        let vwap = ValueData::new(item.time, round(pvt / item.volume));
+        acc.1.push(vwap);
+        acc
+    });
+    data
 }
 
 /// Relative strength index of the close prices; the first items are whitespace.

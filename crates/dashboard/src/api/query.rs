@@ -2,6 +2,7 @@ use std::str::FromStr;
 
 use cynic::{GraphQlResponse, QueryBuilder};
 use trading_charts::data::{OhlcvData, UTCTimestamp};
+
 use crate::api::models::{Candle1mBySymbol, Candle1mBySymbolVariables, TradeInput};
 
 /// Querying the GraphQL server to retrieve OHLCV data
@@ -19,13 +20,12 @@ pub async fn trades_by_symbol(graphql_endpoint: String, symbol: String) -> Vec<O
         .post(graphql_endpoint)
         .json(&operation)
         .send()
-        .await else {
+        .await
+    else {
         log::error!("querying GraphQL API failed");
         return vec![];
     };
-    let Ok(graphql_response) = response
-        .json::<GraphQlResponse<Candle1mBySymbol>>()
-        .await else {
+    let Ok(graphql_response) = response.json::<GraphQlResponse<Candle1mBySymbol>>().await else {
         log::error!("deserializing GraphQL API response failed");
         return vec![];
     };
@@ -35,15 +35,16 @@ pub async fn trades_by_symbol(graphql_endpoint: String, symbol: String) -> Vec<O
         return vec![];
     };
 
-    candles.candle1_minute
-    .into_iter()
-    .map(|x| OhlcvData {
-        time: UTCTimestamp::from_str(&x.time_bucket.0).unwrap(),
-        open: x.open.0.parse().unwrap(),
-        high: x.high.0.parse().unwrap(),
-        low: x.low.0.parse().unwrap(),
-        close: x.close.0.parse().unwrap(),
-        volume: x.volume.0.parse().unwrap()
-    })
-    .collect()
+    candles
+        .candle1_minute
+        .into_iter()
+        .map(|x| OhlcvData {
+            time: UTCTimestamp::from_str(&x.time_bucket.0).unwrap(),
+            open: x.open.0.parse().unwrap(),
+            high: x.high.0.parse().unwrap(),
+            low: x.low.0.parse().unwrap(),
+            close: x.close.0.parse().unwrap(),
+            volume: x.volume.0.parse().unwrap()
+        })
+        .collect()
 }

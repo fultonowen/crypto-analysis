@@ -4,7 +4,7 @@ use leptos::prelude::*;
 use trading_charts::{
     chart::Chart,
     data::{
-        Candlestick, HistogramData, LegendOptions, MarkerPosition, MarkerShape, MarkerStyle, PriceLineOptions, ValueData, options::LineWidth, register_marker_style,
+        Candlestick, HistogramData, LegendOptions, PriceLineOptions, ValueData, options::LineWidth
     },
     series::{
         areas::{AreaSeries, AreaSeriesOptions},
@@ -13,14 +13,16 @@ use trading_charts::{
         candlesticks::{CandleStickSeries, CandlestickOptions},
         histograms::{HistogramSeries, HistogramSeriesOptions},
         lines::{LineSeries, LineSeriesOptions}
-}
+    }
 };
 
 use super::base_options;
-use crate::api::query;
-use crate::components::choice::Choice;
-use crate::config::AppConfig;
-use crate::transform::{candlesticks, closes, moving_average};
+use crate::{
+    api::query,
+    components::choice::Choice,
+    config::AppConfig,
+    transform::{candlesticks, closes, moving_average, vwap_rolling}
+};
 
 #[derive(Clone, Copy, PartialEq)]
 enum Kind {
@@ -39,6 +41,7 @@ pub fn SeriesView(form_item: RwSignal<String>) -> impl IntoView {
     let values: RwSignal<Vec<ValueData>> = RwSignal::new(vec![]);
     let histogram: RwSignal<Vec<HistogramData>> = RwSignal::new(vec![]);
     let ma: RwSignal<Vec<ValueData>> = RwSignal::new(vec![]);
+    let vwap: RwSignal<Vec<ValueData>> = RwSignal::new(vec![]);
     let price_lines: RwSignal<Vec<PriceLineOptions>> = RwSignal::new(vec![]);
     let base_series_options = RwSignal::new(BaselineSeriesOptions::new());
 
@@ -62,6 +65,7 @@ pub fn SeriesView(form_item: RwSignal<String>) -> impl IntoView {
                     .collect();
                 histogram.set(histogram_v);
                 ma.set(moving_average(&data, 20));
+                vwap.set(vwap_rolling(&data));
                 price_lines.set(vec![
                     PriceLineOptions::new(average.get())
                         .with_title("Average")
@@ -83,15 +87,6 @@ pub fn SeriesView(form_item: RwSignal<String>) -> impl IntoView {
             handle.clear();
         }
     });
-
-    let _ = register_marker_style(
-        "earnings",
-        &MarkerStyle::new()
-            .with_shape(MarkerShape::Circle)
-            .with_position(MarkerPosition::AboveBar)
-            .with_color("#db2777")
-            .with_text("E")
-    );
 
     let kind = RwSignal::new(Kind::Candlestick);
 
@@ -174,8 +169,17 @@ pub fn SeriesView(form_item: RwSignal<String>) -> impl IntoView {
             <LineSeries
                 data=ma
                 options=LineSeriesOptions::new()
-                    .with_title("MA 20")
+                    .with_title("MA 20 min")
                     .with_color("#f97316")
+                    .with_line_width(LineWidth::W1)
+                    .with_price_line_visible(false)
+                    .with_last_value_visible(false)
+            />
+            <LineSeries
+                data=vwap
+                options=LineSeriesOptions::new()
+                    .with_title("Vwap")
+                    .with_color("#0891b2")
                     .with_line_width(LineWidth::W1)
                     .with_price_line_visible(false)
                     .with_last_value_visible(false)

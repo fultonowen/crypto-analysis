@@ -1,5 +1,4 @@
-use leptos::{component, IntoView, view};
-use leptos::prelude::*;
+use leptos::{IntoView, component, prelude::*, view};
 
 /// Toolbar of buttons selecting one value among several.
 #[component]

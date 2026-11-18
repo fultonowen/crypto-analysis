@@ -1,5 +1,4 @@
-use leptos::{component, IntoView, view};
-use leptos::prelude::*;
+use leptos::{IntoView, component, prelude::*, view};
 
 /// Checkbox bound to a boolean signal.
 #[component]

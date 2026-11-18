@@ -55,7 +55,7 @@ services:
       - TRUNK_SERVE_ADDRESSES=0.0.0.0
     depends_on:
       server:
-        condition: service_healthy # todo: healthcheck for server
+        condition: service_healthy
 
   migrate:
     build:

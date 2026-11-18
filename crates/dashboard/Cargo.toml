@@ -4,6 +4,8 @@ edition.workspace = true
 version.workspace = true
 authors.workspace = true
 rust-version.workspace = true
+readme.workspace = true
+license.workspace = true
 
 [[bin]]
 name = "dashboard"
@@ -15,11 +17,11 @@ path = "src/lib.rs"
 [dependencies]
 # third party crates
 cynic = { workspace = true, features = ["http-reqwest"] }
-leptos = { version = "0.8", features = ["csr"] }
+leptos = { workspace = true, features = ["csr"] }
 reqwest = { workspace = true, features = [] }
 serde = { workspace = true, features = ["derive"] }
-trading-charts = { workspace = true }
-wasm-bindgen = { workspace = true }
+trading-charts = "1.0.0"
+wasm-bindgen = "0.2.130"
 console_log = "1.1.0"
 log = "0.4.35"
 console_error_panic_hook = "0.1.7"

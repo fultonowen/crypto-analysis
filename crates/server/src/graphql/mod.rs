@@ -11,6 +11,7 @@ use axum::routing::{get, post};
 use framework::database::Database;
 use serde::Deserialize;
 use tokio::net;
+use tower_http::cors::CorsLayer;
 
 use crate::graphql::{
     handlers::{graphql_ws_handler, health},
@@ -44,10 +45,12 @@ impl HttpServer {
             .data(database)
             .finish();
 
+        let cors = CorsLayer::permissive();
         let state = AppState { schema };
         let router = axum::Router::new()
             .nest("/api", health_routes())
             .nest("/api", graphql_routes())
+            .layer(cors)
             .with_state(state);
 
         let listener = net::TcpListener::bind(format!("{}:{}", config.address, config.port))

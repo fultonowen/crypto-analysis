@@ -1,7 +1,6 @@
 use leptos::prelude::*;
 
-use crate::components::ControlledForm;
-use crate::views::series::SeriesDemo;
+use crate::{components::ControlledForm, views::series::SeriesDemo};
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum Demo {

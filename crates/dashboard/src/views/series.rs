@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use leptos::prelude::*;
 use trading_charts::{
     chart::Chart,
@@ -16,8 +18,10 @@ use trading_charts::{
 };
 
 use super::{Choice, base_options};
-use crate::data2::{candlesticks, closes, daily_ohlcv, moving_average};
-use crate::query;
+use crate::{
+    data2::{candlesticks, closes, moving_average},
+    query
+};
 
 #[derive(Clone, Copy, PartialEq)]
 enum Kind {
@@ -62,10 +66,55 @@ fn candles_with_gap(data: &[OhlcvData]) -> Vec<Candlestick> {
 
 #[component]
 pub fn SeriesDemo(form_item: RwSignal<String>) -> impl IntoView {
+    let candles: RwSignal<Vec<Candlestick>> = RwSignal::new(vec![]);
+    let average: RwSignal<f64> = RwSignal::new(0f64);
+    let values: RwSignal<Vec<ValueData>> = RwSignal::new(vec![]);
+    let histogram: RwSignal<Vec<HistogramData>> = RwSignal::new(vec![]);
+    let ma: RwSignal<Vec<ValueData>> = RwSignal::new(vec![]);
+    let price_lines: RwSignal<Vec<PriceLineOptions>> = RwSignal::new(vec![]);
+    let base_series_options = RwSignal::new(BaselineSeriesOptions::new());
+
     let async_data = LocalResource::new(move || {
         let value = form_item.get().clone();
         query::trades_by_symbol(value)
     });
+
+    let handle = set_interval_with_handle(
+        move || {
+            async_data.refetch();
+            if let Some(data) = async_data.get() {
+                candles.set(candles_with_gap(&data));
+                let avg = data.iter().map(|item| item.close).sum::<f64>() / data.len() as f64;
+                average.set(avg);
+                values.set(closes_with_gap(&data));
+                let histogram_v = data
+                    .iter()
+                    .map(|item| HistogramData::new(item.time, item.close - item.open))
+                    .collect();
+                histogram.set(histogram_v);
+                ma.set(moving_average(&data, 20));
+                price_lines.set(vec![
+                    PriceLineOptions::new(average.get())
+                        .with_title("Average")
+                        .with_color("#64748b")
+                        .with_line_width(LineWidth::W2),
+                ]);
+                base_series_options.set(
+                    BaselineSeriesOptions::new()
+                        .with_title("Close vs average")
+                        .with_base_value(BaselineBaseValue::price(average.get()))
+                )
+            }
+        },
+        Duration::from_secs(10)
+    );
+
+    on_cleanup(move || {
+        if let Ok(handle) = handle {
+            handle.clear();
+        }
+    });
+
     let _ = register_marker_style(
         "earnings",
         &MarkerStyle::new()
@@ -75,26 +124,30 @@ pub fn SeriesDemo(form_item: RwSignal<String>) -> impl IntoView {
             .with_text("E")
     );
 
-    let data = daily_ohlcv(7, 120, 100.0);
-    let average = data.iter().map(|item| item.close).sum::<f64>() / data.len() as f64;
+    // todo: my example here, may remove
+    // let data = move || async_data.get().unwrap_or_else(|| vec![]);
+    // let average = move || {
+    //     let xs = data();
+    //     xs.iter().map(|item| item.close).sum::<f64>() / xs.len() as f64
+    // };
     let kind = RwSignal::new(Kind::Candlestick);
-    let candles = Signal::stored(candles_with_gap(&data));
-    let values = Signal::stored(closes_with_gap(&data));
-    let histogram = Signal::stored(
-        data.iter()
-            .map(|item| HistogramData::new(item.time, item.close - item.open))
-            .collect::<Vec<_>>()
-    );
-    let ma = Signal::stored(moving_average(&data, 20));
+    // let candles = Signal::stored(candles_with_gap(&data));
+    // let values = Signal::stored(closes_with_gap(&data));
+    // let histogram = Signal::stored(
+    //     data.iter()
+    //         .map(|item| HistogramData::new(item.time, item.close - item.open))
+    //         .collect::<Vec<_>>()
+    // );
+    // let ma = Signal::stored(moving_average(&data, 20));
 
     let markers = Signal::stored(vec![]);
-    let price_lines = Signal::stored(vec![
-        PriceLineOptions::new(average)
-            .with_title("Average")
-            .with_color("#64748b")
-            .with_line_width(LineWidth::W2),
-    ]);
-    let legend = Signal::stored(Some(LegendOptions::new().with_text("ACME daily")));
+    // let price_lines = Signal::stored(vec![
+    //     PriceLineOptions::new(average)
+    //         .with_title("Average")
+    //         .with_color("#64748b")
+    //         .with_line_width(LineWidth::W2),
+    // ]);
+    let legend = Signal::stored(Some(LegendOptions::new().with_text("1 Minute Bars")));
 
     view! {
         <Choice
@@ -113,7 +166,7 @@ pub fn SeriesDemo(form_item: RwSignal<String>) -> impl IntoView {
             {move || match kind.get() {
                 Kind::Candlestick => view! {
                     <CandleStickSeries
-                        data=candles
+                        data=move || candles.get()
                         markers=markers
                         price_lines=price_lines
                         options=CandlestickOptions::new().with_title("Candles").with_wick_up_color("#16a34a")
@@ -156,9 +209,7 @@ pub fn SeriesDemo(form_item: RwSignal<String>) -> impl IntoView {
                         data=values
                         markers=markers
                         price_lines=price_lines
-                        options=BaselineSeriesOptions::new()
-                            .with_title("Close vs average")
-                            .with_base_value(BaselineBaseValue::price(average))
+                        options=base_series_options
                     />
                 }
                 .into_any(),

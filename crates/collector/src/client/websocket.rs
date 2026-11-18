@@ -53,11 +53,11 @@ where
             match msg? {
                 Message::Text(t) => {
                     tracing::debug!("websocket received {:?}", t);
-                    let _ = self.handle_msg(&tx, t.as_bytes()).await; // todo: exit only if this fails
+                    let _ = self.handle_msg(tx, t.as_bytes()).await; // todo: exit only if this fails
                 }
                 Message::Binary(b) => {
                     tracing::debug!("received bytes");
-                    let _ = self.handle_msg(&tx, &b).await; // todo: exit only if this fails
+                    let _ = self.handle_msg(tx, &b).await; // todo: exit only if this fails
                 }
                 Message::Ping(p) => {
                     tracing::debug!("received ping message from websocket server");

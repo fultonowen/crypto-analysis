@@ -31,7 +31,7 @@ impl Database {
             .max_connections(config.max_connections)
             .connect(&config.url)
             .await?;
-        Ok(Self { pool: conn.into() })
+        Ok(Self { pool: conn })
     }
 
     /// Gives a reference to the underlying ['PgPool']

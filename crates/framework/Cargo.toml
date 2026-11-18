@@ -4,6 +4,8 @@ authors.workspace = true
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
+readme.workspace = true
+license.workspace = true
 
 [dependencies]
 anyhow = { workspace = true }
@@ -11,4 +13,4 @@ config = { workspace = true }
 thiserror = { workspace = true }
 logfire = { workspace = true, features = ["export-http-protobuf"]}
 sqlx = { workspace = true, features = ["postgres"]}
-serde = { version = "1.0.229", features = ["derive"] }
+serde = { workspace = true, features = ["derive"] }

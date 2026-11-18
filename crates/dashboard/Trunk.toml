@@ -13,6 +13,9 @@ ignores = [
 ]
 
 [serve]
-addresses = ["127.0.0.1"]
+# local development only, pass 0.0.0.0 in containerized environment
+addresses = [
+    "127.0.0.1"
+]
 port = 9090
 open = true

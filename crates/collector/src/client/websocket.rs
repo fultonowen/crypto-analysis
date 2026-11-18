@@ -10,6 +10,9 @@ pub struct WsTransport<T: ExchangeAdapter> {
     adapter: T
 }
 
+#[derive(Debug)]
+pub struct FatalError;
+
 impl<T> WsTransport<T>
 where
     T: ExchangeAdapter
@@ -53,11 +56,17 @@ where
             match msg? {
                 Message::Text(t) => {
                     tracing::debug!("websocket received {:?}", t);
-                    let _ = self.handle_msg(tx, t.as_bytes()).await; // todo: exit only if this fails
+                    if let Err(_) = self.handle_msg(tx, t.as_bytes()).await {
+                        tracing::error!("fatal error occurred in message passing");
+                        break;
+                    }
                 }
                 Message::Binary(b) => {
                     tracing::debug!("received bytes");
-                    let _ = self.handle_msg(tx, &b).await; // todo: exit only if this fails
+                    if let Err(_) = self.handle_msg(tx, &b).await {
+                        tracing::error!("fatal error occurred in message passing");
+                        break;
+                    }
                 }
                 Message::Ping(p) => {
                     tracing::debug!("received ping message from websocket server");
@@ -81,11 +90,11 @@ where
         &self,
         tx: &mpsc::Sender<MarketEvent>,
         bytes: &[u8]
-    ) -> Result<(), WebSocketError> {
+    ) -> Result<(), FatalError> {
         match self.adapter.parse(bytes) {
             Ok(Some(event)) => {
-                if let Err(_) = tx.send(event).await {
-                    return Ok(()); // todo: fix this, the stream
+                if let Err(_e) = tx.send(event).await {
+                    return Err(FatalError); // transaction receiver has dropped
                 }
                 Ok(())
             }

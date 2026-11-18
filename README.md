@@ -42,19 +42,19 @@ Leptos dashboard
 
 **Binance WebSocket as the data source.**
 
-Free + public with `binance.us`, and requires no API key for market data streams. Binance allows for streaming trade data per cryptocurrency symbol.
+Free + public crypto trade data with `binance.us`, and requires no API key for market data streams. Binance allows for streaming trade data per cryptocurrency symbol as well as combining trade streams into one subscription.
 
-**Direct writing instead of a message broker**
+**Direct writing instead of a message broker** 
 
-Trade rates for a handful of pairs are well within what batched writes to TimescaleDB can absorb. Keeping a broker off the hot path avoids an extra network hop and keeps latency low. A broker such as Kafka is a natural extension if multiple independent consumers or multi-process scale-out are needed.
+Trade rates for a handful of pairs are well within what single/batched writes to TimescaleDB can absorb. Writing directly keeps the hot path short, latency lower, and is easier to implement in a short time.
 
 **TimescaleDB for storage**
 
-Using hypertables for time partitioning, compression, and continuous aggregates for OHLCV bars. Realtime aggregates are using to create aggregations over pre-calculated data as well most recent entries.
+Using hypertables for time partitioning, compression, and continuous aggregates. Realtime aggregates are leveraged to create aggregations over pre-calculated data as well as most recent entries. This helps create time-bucketed bars out of tick data (OHLCV 1 min aggregation).
 
 **GraphQL API**
 
-Allows for clients to create dynamic queries for necessary data.
+Allows for dynamic client access to all trading data and OHLCV 1 min bars.
 
 
 **Leptos frontend**
@@ -82,11 +82,15 @@ crates
 
 ### Running the Application
 
+The entirety of the application is contained within the [compose.yaml](compose.yaml).
+
+Running
 ```bash
 docker compose up -d
 ```
+will start the collector, TimescaleDB, server, and dashboard services.
 
-[Cargo Chef](https://github.com/lukemathwalker/cargo-chef) was implemented to improve build performance over time.  
+[Cargo Chef](https://github.com/lukemathwalker/cargo-chef) was implemented to improve build performance over time with Docker and Rust dependency layer caching.
 
 ### Dashboard
 
@@ -100,7 +104,7 @@ Currently supported ticker values are the following:
 
 `BTCUSD`, `ETHUSD`, `BNBUSD`, `XRPUSD`, `SOLUSD`, `TRXUSD`, `HYPEUSD`, `ZECUSD`, `DOGEUSD`, `XMRUSD`, `LINKUSD`, `ADAUSD`, `XLMUSD`, `NEARUSD`, `DAIUSD`, `LTCUSD`, `AVAXUSD`, `UNIUSD`, `CCUSD`, `SUIUSD`, `HBARUSD`, `SHIBUSD`, `TAOUSD`, `CROUSD`, `QNTUSD`, `PEPEUSD`
 
-Note that data begins building when the application starts up and so the dashboard may take time to have a meaningful visual representation.
+Note that data begins collecting when the application starts up and so the dashboard may take time to have a meaningful visual representation.
 
 ## Data Model
 

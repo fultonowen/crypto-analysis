@@ -1,6 +1,7 @@
 use leptos::prelude::*;
 
-use crate::{components::ControlledForm, views::series::SeriesDemo};
+use crate::views::series::SeriesView;
+use crate::components::form::ControlledForm;
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum Demo {
@@ -19,8 +20,8 @@ impl Demo {
     fn description(self) -> &'static str {
         match self {
             Demo::Series => {
-                "The six series types, price lines, whitespace \
-                 data (the gap of the line) and a moving average. Changing the type mounts another series component."
+                "The six series types, price lines, and a moving average. \
+                Changing the type mounts another series component."
             }
         }
     }
@@ -48,7 +49,7 @@ pub fn App() -> impl IntoView {
             <p class="description">{move || demo.get().description()}</p>
             <ControlledForm form_item=form_item />
             {move || match demo.get() {
-                Demo::Series => view! { <SeriesDemo form_item=form_item /> }.into_any(),
+                Demo::Series => view! { <SeriesView form_item=form_item /> }.into_any(),
             }}
         </main>
     }

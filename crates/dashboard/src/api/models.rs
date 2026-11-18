@@ -1,6 +1,8 @@
-// this schema allows for auto-gen of rust types from GraphQL SDL
+
+/// this schema allows for auto-gen of rust types from GraphQL SDL
 #[cynic::schema("server")]
 pub mod schema {}
+
 #[derive(cynic::QueryVariables, Debug)]
 pub struct TradesBySymbolVariables<'a> {
     pub input: TradeInput<'a>

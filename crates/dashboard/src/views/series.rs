@@ -5,7 +5,7 @@ use trading_charts::{
     chart::Chart,
     data::{
         Candlestick, HistogramData, LegendOptions, MarkerPosition, MarkerShape, MarkerStyle,
-        OhlcvData, PriceLineOptions, ValueData, options::LineWidth, register_marker_style
+        OhlcvData, PriceLineOptions, ValueData, options::LineWidth, register_marker_style,
     },
     series::{
         areas::{AreaSeries, AreaSeriesOptions},
@@ -14,14 +14,15 @@ use trading_charts::{
         candlesticks::{CandleStickSeries, CandlestickOptions},
         histograms::{HistogramSeries, HistogramSeriesOptions},
         lines::{LineSeries, LineSeriesOptions}
-    }
+}
 };
 
-use super::{Choice, base_options};
-use crate::{
-    data2::{candlesticks, closes, moving_average},
-    query
-};
+use super::base_options;
+use crate::api::query;
+use crate::
+transform::{candlesticks, closes, moving_average}
+;
+use crate::components::choice::Choice;
 
 #[derive(Clone, Copy, PartialEq)]
 enum Kind {
@@ -33,39 +34,8 @@ enum Kind {
     Histogram
 }
 
-/// Range of the items replaced by whitespace items: empty slots on the time scale.
-const GAP: std::ops::Range<usize> = 60..68;
-
-fn closes_with_gap(data: &[OhlcvData]) -> Vec<ValueData> {
-    closes(data)
-        .into_iter()
-        .enumerate()
-        .map(|(index, item)| {
-            if GAP.contains(&index) {
-                ValueData::whitespace(item.time())
-            } else {
-                item
-            }
-        })
-        .collect()
-}
-
-fn candles_with_gap(data: &[OhlcvData]) -> Vec<Candlestick> {
-    candlesticks(data)
-        .into_iter()
-        .enumerate()
-        .map(|(index, item)| {
-            if GAP.contains(&index) {
-                Candlestick::whitespace(item.time())
-            } else {
-                item
-            }
-        })
-        .collect()
-}
-
 #[component]
-pub fn SeriesDemo(form_item: RwSignal<String>) -> impl IntoView {
+pub fn SeriesView(form_item: RwSignal<String>) -> impl IntoView {
     let candles: RwSignal<Vec<Candlestick>> = RwSignal::new(vec![]);
     let average: RwSignal<f64> = RwSignal::new(0f64);
     let values: RwSignal<Vec<ValueData>> = RwSignal::new(vec![]);
@@ -83,10 +53,10 @@ pub fn SeriesDemo(form_item: RwSignal<String>) -> impl IntoView {
         move || {
             async_data.refetch();
             if let Some(data) = async_data.get() {
-                candles.set(candles_with_gap(&data));
+                candles.set(candlesticks(&data));
                 let avg = data.iter().map(|item| item.close).sum::<f64>() / data.len() as f64;
                 average.set(avg);
-                values.set(closes_with_gap(&data));
+                values.set(closes(&data));
                 let histogram_v = data
                     .iter()
                     .map(|item| HistogramData::new(item.time, item.close - item.open))
@@ -124,29 +94,9 @@ pub fn SeriesDemo(form_item: RwSignal<String>) -> impl IntoView {
             .with_text("E")
     );
 
-    // todo: my example here, may remove
-    // let data = move || async_data.get().unwrap_or_else(|| vec![]);
-    // let average = move || {
-    //     let xs = data();
-    //     xs.iter().map(|item| item.close).sum::<f64>() / xs.len() as f64
-    // };
     let kind = RwSignal::new(Kind::Candlestick);
-    // let candles = Signal::stored(candles_with_gap(&data));
-    // let values = Signal::stored(closes_with_gap(&data));
-    // let histogram = Signal::stored(
-    //     data.iter()
-    //         .map(|item| HistogramData::new(item.time, item.close - item.open))
-    //         .collect::<Vec<_>>()
-    // );
-    // let ma = Signal::stored(moving_average(&data, 20));
 
     let markers = Signal::stored(vec![]);
-    // let price_lines = Signal::stored(vec![
-    //     PriceLineOptions::new(average)
-    //         .with_title("Average")
-    //         .with_color("#64748b")
-    //         .with_line_width(LineWidth::W2),
-    // ]);
     let legend = Signal::stored(Some(LegendOptions::new().with_text("1 Minute Bars")));
 
     view! {

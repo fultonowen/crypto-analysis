@@ -79,15 +79,17 @@ impl ExchangeAdapter for BinanceAdapter {
 #[cfg(test)]
 pub mod tests {
     use std::assert_matches;
-    use super::*;
+
     use serde_json::json;
+
+    use super::*;
 
     impl Default for BinanceAdapter {
         fn default() -> Self {
             Self {
                 binance_ws_url: "".to_string(),
                 streams: vec![],
-                reconnection_attempts: 0,
+                reconnection_attempts: 0
             }
         }
     }

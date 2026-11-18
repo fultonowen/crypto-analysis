@@ -21,4 +21,3 @@ pub async fn run<A: ExchangeAdapter, S: EventSink>(adapter: A, sink: S) -> anyho
     let _ = tokio::join!(ws, store);
     Ok(())
 }
-

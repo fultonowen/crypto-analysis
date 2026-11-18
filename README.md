@@ -86,9 +86,15 @@ crates
 docker compose up -d
 ```
 
+[Cargo Chef](https://github.com/lukemathwalker/cargo-chef) was implemented to improve build performance over time.  
+
 ### Dashboard
 
-Open the dashboard at `http://localhost:9090`. The GraphQL endpoint is accessible at  `http://localhost:8080/api/graphql`.
+Open the dashboard at `http://localhost:9090`.
+
+The GraphQL endpoint is accessible at `http://localhost:8080/api/graphql`.
+
+Grafana is accessible at `http://localhost:3000` (see [future improvements](#limitations) )
 
 Currently supported ticker values are the following:
 
@@ -156,6 +162,7 @@ cargo test --workspace
 
 ## Known Limitations and Future Work
 
+<a name="limitations-anchor"></a>
 ### Limitations
 - Single venue (Binance). The normalized `Trade` type allows adding other exchanges behind a common source interface.
 - Ticks in flight at a crash can be lost. Add durability with a message broker (e.g. Kafka).

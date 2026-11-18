@@ -3,13 +3,12 @@ target = "./index.html"
 
 [watch]
 watch = [
-    ".",
+    "./src",
     "style.css",
 ]
 
 ignores = [
     "./dist",
-    "./README.md",
 ]
 
 [serve]

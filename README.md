@@ -94,6 +94,13 @@ will start the collector, TimescaleDB, server, and dashboard services.
 
 ### Dashboard
 
+Dashboard containerization is in progress. Until it is available, run the dashboard with the following:
+```bash
+cargo install --locked trunk
+rustup target add wasm32-unknown-unknown
+cd crates/dashboard
+trunk serve
+```
 Open the dashboard at `http://localhost:9090`.
 
 The GraphQL endpoint is accessible at `http://localhost:8080/api/graphql`.
